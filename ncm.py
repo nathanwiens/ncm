@@ -110,7 +110,7 @@ class NcmClient:
     # This method gives a list of accounts with its information.
     def get_accounts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Accounts'
-        geturl = '{0}/accounts'.format(self.base_url)
+        geturl = '{0}/accounts/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
                           'name__in', 'expand']
@@ -127,6 +127,71 @@ class NcmClient:
         #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This operation creates a new sub-account.
+    def create_subaccount(self, parent_account_id, subaccount_name, suppressprint=suppress_print):
+        call_type = 'Create Subccount'
+        posturl = '{0}/accounts/'.format(self.base_url)
+
+        postdata = {
+            'name': str(subaccount_name),
+            'account': '/api/v1/accounts/{}/'.format(str(parent_account_id))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation updates a sub-account.
+    def update_subaccount(self, subaccount_id, subaccount_name, suppressprint=suppress_print):
+        call_type = 'Update Subccount'
+        puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+
+        putdata = {
+            'name': str(subaccount_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation deletes a sub-account.
+    def delete_subaccount(self, subaccount_id, suppressprint=suppress_print):
+        call_type = 'Delete Subccount'
+        posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+
+        ncm = self.session.delete(posturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation deletes a sub-account.
+    def delete_subaccount_by_name(self, subaccount_name, suppressprint=suppress_print):
+        call_type = 'Delete Subccount By Name'
+
+        posturl = ''
+        for account in self.get_accounts()['data']:
+            if account['name'] == str(subaccount_name):
+                posturl = '{0}/accounts/{1}'.format(self.base_url, account['id'])
+                continue
+
+        if posturl is '':
+            print("ERROR: No Account found with name: {}".format(str(subaccount_name)))
+        else:
+            ncm = self.session.delete(posturl)
+            #
+            # Call return handler function to parse NCM response
+            #
+            result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+            return result
 
     # This method returns NCM activity log information.
     def get_activity_logs(self, suppressprint=suppress_print, **kwargs):
@@ -151,7 +216,7 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    #This method gives alert information with associated id.
+    # This method gives alert information with associated id.
     def get_alerts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Alerts'
         geturl = '{0}/alerts/'.format(self.base_url)
@@ -188,6 +253,20 @@ class NcmClient:
             print(bad_params)
 
         ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method updates an configuration_managers for associated id
+    def update_configuration_managers(self, configman_id, configman_json, suppressprint=suppress_print, **kwargs):
+        call_type = 'Update Configuration Manager'
+        puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, configman_id)
+
+        payload = str(configman_json)
+
+        ncm = self.session.put(puturl, data=json.dumps(payload))
         #
         # Call return handler function to parse NCM response
         #
