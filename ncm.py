@@ -467,13 +467,34 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This operation updates a group.
-    def update_group(self, subaccount_id, subaccount_name, suppressprint=suppress_print):
-        call_type = 'Update Subccount'
-        puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+    #TODO: CREATE UPDATE_GROUP AND UPDATE_GROUP_BY_NAME FUNCTIONS
 
+    # This operation updates a group.
+    def update_group(self, group_id, suppressprint=suppress_print):
+        call_type = 'Update Group By Name'
+        puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
+
+        #TODO
         putdata = {
-            'name': str(subaccount_name)
+            # 'name': str(subaccount_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation updates a group.
+    def update_group_by_name(self, group_name, suppressprint=suppress_print):
+        call_type = 'Update Group By Name'
+        #TODO
+        #puturl = '{0}/groups/{1}'.format(self.base_url, subaccount_id)
+
+        #TODO
+        putdata = {
+            # 'name': str(subaccount_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
@@ -484,9 +505,23 @@ class NcmClient:
         return result
 
     # This operation deletes a group.
-    def delete_group(self, subaccount_id, suppressprint=suppress_print):
+    def delete_group(self, group_id, suppressprint=suppress_print):
         call_type = 'Delete Subccount'
-        posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+        posturl = '{0}/group/{1}'.format(self.base_url, group_id)
+
+        ncm = self.session.delete(posturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    #TODO
+    # This operation deletes a group.
+    def delete_group_by_name(self, group_id, suppressprint=suppress_print):
+        call_type = 'Delete Subccount By Name'
+        #TODO
+        #posturl = '{0}/group/{1}'.format(self.base_url, group_id)
 
         ncm = self.session.delete(posturl)
         #
