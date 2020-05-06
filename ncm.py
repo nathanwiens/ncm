@@ -463,6 +463,7 @@ class NcmClient:
     # group_name: Name for new group
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
+    # Example: n.create_group_by_name('Lab', 'My New Group', 'IBR200', '7.2.0')
     def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_name, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
