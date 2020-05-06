@@ -108,10 +108,20 @@ class NcmClient:
             print('HTTP Status Code: {0} - No returned data\n'.format(str(statuscode)))
 
     # Return a list of accounts
-    def get_accounts(self, suppressprint=suppress_print):
+    def get_accounts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Accounts'
         geturl = '{0}/accounts'.format(self.base_url)
-        ncm = self.session.get(geturl)
+
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
+                          'name__in', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
         #
         # Call return handler function to parse NCM response
         #
@@ -123,8 +133,8 @@ class NcmClient:
         call_type = 'Get Groups'
         geturl = '{0}/groups/?account={1}'.format(self.base_url, str(account))
 
-        allowed_params = ['account', 'configuration', 'device_type', 'id', 'name', 'product',
-                          'resource_url', 'target_firmware']
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
+                          'name__in', 'expand']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
