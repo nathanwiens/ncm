@@ -416,11 +416,54 @@ class NcmClient:
         return result
 
     # This operation creates a new group.
+    # parent_account_id: ID of parent account
+    # group_name: Name for new group
+    # product_name: Product model (e.g. IBR200)
+    # firmware_name: Firmware version for group (e.g. 7.2.0)
+    def create_group(self, parent_account_id, group_name, product_name, firmware_name, suppressprint=suppress_print):
+        call_type = 'Create Group'
+        posturl = '{0}/groups/'.format(self.base_url)
+
+        product = ''
+        firmware = ''
+
+        for p in self.get_products(limit='200')['data']:
+            if p['name'] == product_name:
+                product = p['id']
+                print("PRODUCT: {}".format(product))
+                continue
+
+        for f in self.get_firmwares(version=firmware_name)['data']:
+            if f['product'] == 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(product):
+                firmware = f['id']
+
+        if product is '':
+            print("ERROR: Invalid Product Name")
+            return
+        if firmware is '':
+            print("ERROR: Invalid Firmware Version")
+            return
+
+        postdata = {
+            'account': '/api/v1/accounts/{}/'.format(str(parent_account_id)),
+            'name': str(group_name),
+            'product': 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(str(product)),
+            'target_firmware': 'https://www.cradlepointecm.com/api/v2/firmwares/{}/'.format(str(firmware))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation creates a new group.
     # parent_account_name: Friendly name of parent account
     # group_name: Name for new group
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
-    def create_group(self, parent_account_name, group_name, product_name, firmware_name, suppressprint=suppress_print):
+    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_name, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
