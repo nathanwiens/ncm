@@ -178,7 +178,7 @@ class NcmClient:
 
     def get_net_devices_by_type(self, device_type, suppressprint=suppress_print):
         call_type = 'Get Net Devices'
-        geturl = '{0}/net_devices/?type={}'.format(self.base_url, str(device_type))
+        geturl = '{0}/net_devices/?type={1}'.format(self.base_url, str(device_type))
 
         ncm = self.session.get(geturl)
         #
@@ -189,7 +189,7 @@ class NcmClient:
 
     def get_net_devices_for_router(self, router_id, suppressprint=suppress_print):
         call_type = 'Get Net Devices For Router'
-        geturl = '{0}/net_devices/?router={}'.format(self.base_url, str(router_id))
+        geturl = '{0}/net_devices/?router={1}'.format(self.base_url, str(router_id))
 
         ncm = self.session.get(geturl)
         #
@@ -200,7 +200,7 @@ class NcmClient:
 
     def get_net_devices_for_router_by_type(self, router_id, device_type, suppressprint=suppress_print):
         call_type = 'Get Net Devices For Router'
-        geturl = '{0}/net_devices/?router={}&type={}'.format(self.base_url, str(router_id), str(device_type))
+        geturl = '{0}/net_devices/?router={1}&type={2}'.format(self.base_url, str(router_id), str(device_type))
 
         ncm = self.session.get(geturl)
         #
