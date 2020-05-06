@@ -3,6 +3,7 @@ import requests
 import json
 
 base_url = 'https://www.cradlepointecm.com/api/v2'
+suppress_print = False
 
 
 class NcmClient:
@@ -107,65 +108,109 @@ class NcmClient:
             print('HTTP Status Code: {0} - No returned data\n'.format(str(statuscode)))
 
     # Return a list of accounts
-    def get_accounts(self, suppressprint=False):
-        calltype = 'Get Accounts'
+    def get_accounts(self, suppressprint=suppress_print):
+        call_type = 'Get Accounts'
         geturl = '{0}/accounts'.format(self.base_url)
         ncm = self.session.get(geturl)
         #
         # Call return handler function to parse NCM response
         #
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # Return a list of groups
-    def get_groups(self, account, suppressprint=False):
-        calltype = 'Get Groups'
+    def get_groups(self, account, suppressprint=suppress_print):
+        call_type = 'Get Groups'
         geturl = '{0}/groups/?account={1}'.format(self.base_url, str(account))
         ncm = self.session.get(geturl)
         #
         # Call return handler function to parse NCM response
         #
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # Return a list of routers by account
-    def get_routers_for_account(self, account_id, suppressprint=False):
-        calltype = 'Get Routers for Group'
+    def get_routers_for_account(self, account_id, suppressprint=suppress_print):
+        call_type = 'Get Routers for Account'
         geturl = '{0}/routers/?account={1}'.format(self.base_url, str(account_id))
 
         ncm = self.session.get(geturl)
         #
         # Call return handler function to parse NCM response
         #
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # Return a list of routers by group
-    def get_routers_for_group(self, group_id, suppressprint=False):
-        calltype = 'Get Routers for Group'
+    def get_routers_for_group(self, group_id, suppressprint=suppress_print):
+        call_type = 'Get Routers for Group'
         geturl = '{0}/routers/?group={1}'.format(self.base_url, str(group_id))
 
         ncm = self.session.get(geturl)
         #
         # Call return handler function to parse NCM response
         #
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # Return a single router
-    def get_router(self, router_id, suppressprint=False):
-        calltype = 'Get Routers for Group'
+    def get_router(self, router_id, suppressprint=suppress_print):
+        call_type = 'Get Router'
         geturl = '{0}/routers/{1}/'.format(self.base_url, str(router_id))
 
         ncm = self.session.get(geturl)
         #
         # Call return handler function to parse NCM response
         #
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    def set_lan_ip_address(self, router_id, lan_ip, suppressprint=False):
-        calltype = 'Set LAN IP Address'
+    def get_net_devices(self, suppressprint=suppress_print):
+        call_type = 'Get Net Devices'
+        geturl = '{0}/net_devices/'.format(self.base_url)
+
+        ncm = self.session.get(geturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    def get_net_devices_by_type(self, device_type, suppressprint=suppress_print):
+        call_type = 'Get Net Devices'
+        geturl = '{0}/net_devices/?type={}'.format(self.base_url, str(device_type))
+
+        ncm = self.session.get(geturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    def get_net_devices_for_router(self, router_id, suppressprint=suppress_print):
+        call_type = 'Get Net Devices For Router'
+        geturl = '{0}/net_devices/?router={}'.format(self.base_url, str(router_id))
+
+        ncm = self.session.get(geturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    def get_net_devices_for_router_by_type(self, router_id, device_type, suppressprint=suppress_print):
+        call_type = 'Get Net Devices For Router'
+        geturl = '{0}/net_devices/?router={}&type={}'.format(self.base_url, str(router_id), str(device_type))
+
+        ncm = self.session.get(geturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    def set_lan_ip_address(self, router_id, lan_ip, suppressprint=suppress_print):
+        call_type = 'Set LAN IP Address'
 
         response = self.session.get('{0}/configuration_managers/?router.id={1}&fields=id'.format(self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
         response = json.loads(response.content.decode("utf-8"))  # Decode the response and make it a dictionary
@@ -185,5 +230,5 @@ class NcmClient:
         }
         ncm = requests.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
                            data=json.dumps(payload))  # Patch indie config with new values
-        result = self.__returnhandler(ncm.status_code, ncm.text, calltype, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
