@@ -233,6 +233,94 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
+    # This operation gets cellular heath scores, by device.
+    def get_net_device_health(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Net Device Health'
+        geturl = '{0}/net_device_health/'.format(self.base_url)
+
+        allowed_params = ['net_device']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
+    # net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
+    # many net_devices at once.
+    def get_net_device_metrics(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Net Device Metrics'
+        geturl = '{0}/net_device_metrics/'.format(self.base_url)
+
+        allowed_params = ['net_device', 'net_device__in', 'update_ts__lt', 'update_ts__gt']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
+    # net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
+    # many net_devices at once.
+    def get_net_device_signal_samples(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Net Device Signal Samples'
+        geturl = '{0}/net_device_signal_samples/'.format(self.base_url)
+
+        allowed_params = ['net_device', 'net_device__in', 'created_at', 'created_at__lt', 'created_at__gt',
+                          'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method provides information about the net device's overall network traffic.
+    def get_net_device_usage_samples(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Net Device Usage Samples'
+        geturl = '{0}/net_device_usage_samples/'.format(self.base_url)
+
+        allowed_params = ['net_device', 'net_device__in', 'created_at', 'created_at__lt', 'created_at__gt',
+                          'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
     # This method gives a list of net devices.
     def get_net_devices(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Devices'
