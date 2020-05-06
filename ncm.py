@@ -134,8 +134,8 @@ class NcmClient:
         posturl = '{0}/accounts/'.format(self.base_url)
 
         postdata = {
-            'name': str(subaccount_name),
-            'account': '/api/v1/accounts/{}/'.format(str(parent_account_id))
+            'account': '/api/v1/accounts/{}/'.format(str(parent_account_id)),
+            'name': str(subaccount_name)
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
@@ -380,7 +380,7 @@ class NcmClient:
         call_type = 'Get Firmwares'
         geturl = '{0}/firmwares/'.format(self.base_url)
 
-        allowed_params = ['id', 'id__in', 'version', 'version__in']
+        allowed_params = ['id', 'id__in', 'version', 'version__in', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
@@ -414,6 +414,87 @@ class NcmClient:
         #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This operation creates a new group.
+    # parent_account_name: Friendly name of parent account
+    # group_name: Name for new group
+    # product_name: Product model (e.g. IBR200)
+    # firmware_name: Firmware version for group (e.g. 7.2.0)
+    def create_group(self, parent_account_name, group_name, product_name, firmware_name, suppressprint=suppress_print):
+        call_type = 'Create Group'
+        posturl = '{0}/groups/'.format(self.base_url)
+
+        account = ''
+        product = ''
+        firmware = ''
+
+        for a in self.get_accounts()['data']:
+            if a['name'] == parent_account_name:
+                account = a['id']
+                continue
+
+        for p in self.get_products(limit='200')['data']:
+            if p['name'] == product_name:
+                product = p['id']
+                print("PRODUCT: {}".format(product))
+                continue
+
+        for f in self.get_firmwares(version=firmware_name)['data']:
+            if f['product'] == 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(product):
+                firmware = f['id']
+
+        if account is '':
+            print('ERROR: Invalid Account Name')
+            return
+        if product is '':
+            print("ERROR: Invalid Product Name")
+            return
+        if firmware is '':
+            print("ERROR: Invalid Firmware Version")
+            return
+
+        postdata = {
+            'account': '/api/v1/accounts/{}/'.format(str(account)),
+            'name': str(group_name),
+            'product': 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(str(product)),
+            'target_firmware': 'https://www.cradlepointecm.com/api/v2/firmwares/{}/'.format(str(firmware))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation updates a group.
+    def update_group(self, subaccount_id, subaccount_name, suppressprint=suppress_print):
+        call_type = 'Update Subccount'
+        puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+
+        putdata = {
+            'name': str(subaccount_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation deletes a group.
+    def delete_group(self, subaccount_id, suppressprint=suppress_print):
+        call_type = 'Delete Subccount'
+        posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+
+        ncm = self.session.delete(posturl)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
 
     # This method returns a list of locations visited by a device.
     def get_historical_locations(self, router_id, suppressprint=suppress_print, **kwargs):
@@ -606,7 +687,7 @@ class NcmClient:
         call_type = 'Get Products'
         geturl = '{0}/products/'.format(self.base_url)
 
-        allowed_params = ['id', 'id__in']
+        allowed_params = ['id', 'id__in', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
