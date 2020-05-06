@@ -1,5 +1,5 @@
 # Cradlepoint NCM SDK
-Libary of functions for NCM API calls
+This is a libary of python3 functions for the NCM API.
 
 INSTALL AND RUN INSTRUCTIONS
 
