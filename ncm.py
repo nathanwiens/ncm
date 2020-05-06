@@ -172,13 +172,156 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
+    # A configuration manager is an abstract resource for controlling and monitoring config sync on a single device.
+    # Each device has its own corresponding configuration manager.
+    def get_configuration_managers(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Configuration Managers'
+        geturl = '{0}/configuration_managers/'.format(self.base_url)
+
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router_in', 'synched',
+                          'suspended', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method gives device app binding information for all device app bindings associated with the account.
+    def get_device_app_bindings(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Device App Bindings'
+        geturl = '{0}/device_app_bindings/'.format(self.base_url)
+
+        allowed_params = ['account', 'account__in', 'group', 'group__in', 'app_version', 'app_version__in',
+                          'id', 'id__in', 'state', 'state__in', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method gives device app state information for all device app states associated with the account.
+    def get_device_app_states(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Device App States'
+        geturl = '{0}/device_app_states/'.format(self.base_url)
+
+        allowed_params = ['account', 'account__in', 'router', 'router__in', 'app_version', 'app_version__in',
+                          'id', 'id__in', 'state', 'state__in', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method gives device app version information for all device app versions associated with the account.
+    def get_device_app_versions(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Device App Versions'
+        geturl = '{0}/device_app_versions/'.format(self.base_url)
+
+        allowed_params = ['account', 'account__in', 'app', 'app__in', 'id', 'id__in', 'state', 'state__in', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method gives device app information for all device apps associated with the account.
+    def get_device_apps(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Device Apps'
+        geturl = '{0}/device_apps/'.format(self.base_url)
+
+        allowed_params = ['account', 'account__in', 'name', 'name__in', 'id', 'id__in', 'uuid', 'uuid__in', 'expand']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method returns a list of Failover Events for a device, group, or account.
+    def get_failovers(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Failovers'
+        geturl = '{0}/failovers/'.format(self.base_url)
+
+        allowed_params = ['account_id', 'group_id', 'router_id', 'started_at', 'ended_at', 'limit', 'offset']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation gives the list of device firmwares.
+    def get_firmwares(self, suppressprint=suppress_print, **kwargs):
+        call_type = 'Get Firmwares'
+        geturl = '{0}/firmwares/'.format(self.base_url)
+
+        allowed_params = ['id', 'id__in', 'version', 'version__in']
+        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
+        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
+
+        if len(bad_params) > 0:
+            print("INVALID PARAMETERS: ")
+            print(bad_params)
+
+        ncm = self.session.get(geturl, params=params)
+        #
+        # Call return handler function to parse NCM response
+        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
     # This method gives a groups list.
     def get_groups(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Groups'
         geturl = '{0}/groups/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
-                          'name__in', 'expand']
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name', 'name__in', 'expand']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
@@ -345,7 +488,7 @@ class NcmClient:
 
     # This method gives a list of net devices filtered by type.
     def get_net_devices_by_type(self, device_type, suppressprint=suppress_print):
-        call_type = 'Get Net Devices'
+        call_type = 'Get Net Devices By Type'
         geturl = '{0}/net_devices/?type={1}'.format(self.base_url, str(device_type))
 
         ncm = self.session.get(geturl)
@@ -369,7 +512,7 @@ class NcmClient:
 
     # This method gives a list of net devices for a given router, filtered by mode (lan/wan).
     def get_net_devices_for_router_by_mode(self, router_id, mode, suppressprint=suppress_print):
-        call_type = 'Get Net Devices For Router'
+        call_type = 'Get Net Devices For Router By Mode'
         geturl = '{0}/net_devices/?router={1}&mode={2}'.format(self.base_url, str(router_id), str(mode))
 
         ncm = self.session.get(geturl)
