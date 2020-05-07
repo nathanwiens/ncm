@@ -1,21 +1,29 @@
 # Cradlepoint NCM SDK
-This is a libary of python3 functions for the NCM API.
+This is a Python client library for Cradlepoint NCM API
 
 INSTALL AND RUN INSTRUCTIONS
 
-1. Rename the config_example.py file to config.py and change the variables to match API Keys for your NCM Account
+1. Install the ncm pip package:
+    ```
+    pip3 install -i https://test.pypi.org/simple/ ncm
+    ```
 
-2. Create a Python script (or use ncmtest.py as an example), and import the files:
-```
-import config, ncm
-```
+2. Create a config.py file with your NCM API Keys:
+    ```
+    X_CP_API_ID = 'aaaa'
+    X_CP_API_KEY = 'bbbb'
+    X_ECM_API_ID = 'cccc'
+    X_ECM_API_KEY = 'dddd'
+    ```
 
-3. Create an instance of the NcmClient object:
-```
-n = ncm.NcmClient(config.X_CP_API_ID, config.X_CP_API_KEY, config.X_ECM_API_ID, config.X_ECM_API_KEY)
-```
+3. Create a Python script, import the module, and create an instance of the NcmClient object:
+    ```
+    import config
+    from ncm import ncm
+    n = ncm.NcmClient(X_CP_API_ID, X_CP_API_KEY, X_ECM_API_ID, X_ECM_API_KEY)
+    ```
 
-4. Call functions from the library as needed. For example:
-```
-print(n.get_accounts())
-```
+4. Call functions from the module as needed. For example:
+    ```
+    print(n.get_accounts())
+    ```

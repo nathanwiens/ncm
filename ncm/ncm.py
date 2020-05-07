@@ -1018,6 +1018,8 @@ class NcmClient:
             self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
         response = json.loads(response.content.decode("utf-8"))  # Decode the response and make it a dictionary
         configman_id = response['data'][0]['id']  # get the Configuration Managers ID from response
+
+
         payload = {
             "configuration": [
                 {
@@ -1031,7 +1033,8 @@ class NcmClient:
                 []
             ]
         }
-        ncm = requests.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
+
+        ncm = self.session.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
                              data=json.dumps(payload))  # Patch indie config with new values
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
