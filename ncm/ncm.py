@@ -1,10 +1,11 @@
 import requests
 import json
 
+suppress_print = False
+
 
 class NcmClient:
-    def __init__(self, X_CP_API_ID, X_CP_API_KEY, X_ECM_API_ID, X_ECM_API_KEY, suppressprint=False):
-        self.suppressprint = suppressprint
+    def __init__(self, X_CP_API_ID, X_CP_API_KEY, X_ECM_API_ID, X_ECM_API_KEY):
         self.session = requests.session()
         self.base_url = 'https://www.cradlepointecm.com/api/v2'
         self.session.headers.update({
@@ -100,7 +101,7 @@ class NcmClient:
             print('HTTP Status Code: {0} - No returned data\n'.format(str(statuscode)))
 
     # This method gives a list of accounts with its information.
-    def get_accounts(self, suppressprint=self.suppressprint, **kwargs):
+    def get_accounts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Accounts'
         geturl = '{0}/accounts/'.format(self.base_url)
 
@@ -128,7 +129,7 @@ class NcmClient:
         return
 
     # This operation creates a new sub-account.
-    def create_subaccount(self, parent_account_id, subaccount_name, suppressprint=self.suppressprint):
+    def create_subaccount(self, parent_account_id, subaccount_name, suppressprint=suppress_print):
         call_type = 'Create Subccount'
         posturl = '{0}/accounts/'.format(self.base_url)
 
@@ -142,7 +143,7 @@ class NcmClient:
         return result
 
     # This operation updates a sub-account.
-    def rename_subaccount(self, subaccount_id, new_subaccount_name, suppressprint=self.suppressprint):
+    def rename_subaccount(self, subaccount_id, new_subaccount_name, suppressprint=suppress_print):
         call_type = 'Rename Subccount'
         puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
 
@@ -155,7 +156,7 @@ class NcmClient:
         return result
 
     # This operation renames a sub-account by name instead of ID.
-    def rename_subaccount_by_name(self, subaccount_name, new_subaccount_name, suppressprint=self.suppressprint):
+    def rename_subaccount_by_name(self, subaccount_name, new_subaccount_name, suppressprint=suppress_print):
         call_type = 'Rename Subccount By Name'
 
         puturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
@@ -169,7 +170,7 @@ class NcmClient:
         return result
 
     # This operation deletes a sub-account.
-    def delete_subaccount(self, subaccount_id, suppressprint=self.suppressprint):
+    def delete_subaccount(self, subaccount_id, suppressprint=suppress_print):
         call_type = 'Delete Subccount'
         posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
 
@@ -178,7 +179,7 @@ class NcmClient:
         return result
 
     # This operation deletes a sub-account.
-    def delete_subaccount_by_name(self, subaccount_name, suppressprint=self.suppressprint):
+    def delete_subaccount_by_name(self, subaccount_name, suppressprint=suppress_print):
         call_type = 'Delete Subccount By Name'
 
         posturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
@@ -188,7 +189,7 @@ class NcmClient:
         return result
 
     # This method returns NCM activity log information.
-    def get_activity_logs(self, suppressprint=self.suppressprint, **kwargs):
+    def get_activity_logs(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Activity Logs'
         geturl = '{0}/activity_logs/'.format(self.base_url)
 
@@ -211,7 +212,7 @@ class NcmClient:
         return result
 
     # This method gives alert information with associated id.
-    def get_alerts(self, suppressprint=self.suppressprint, **kwargs):
+    def get_alerts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Alerts'
         geturl = '{0}/alerts/'.format(self.base_url)
 
@@ -232,7 +233,7 @@ class NcmClient:
 
     # A configuration manager is an abstract resource for controlling and monitoring config sync on a single device.
     # Each device has its own corresponding configuration manager.
-    def get_configuration_managers(self, suppressprint=self.suppressprint, **kwargs):
+    def get_configuration_managers(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Configuration Managers'
         geturl = '{0}/configuration_managers/'.format(self.base_url)
 
@@ -252,7 +253,7 @@ class NcmClient:
         return result
 
     # This method updates an configuration_managers for associated id
-    def update_configuration_managers(self, configman_id, configman_json, suppressprint=self.suppressprint):
+    def update_configuration_managers(self, configman_id, configman_json, suppressprint=suppress_print):
         call_type = 'Update Configuration Manager'
         puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, configman_id)
 
@@ -263,7 +264,7 @@ class NcmClient:
         return result
 
     # This method gives device app binding information for all device app bindings associated with the account.
-    def get_device_app_bindings(self, suppressprint=self.suppressprint, **kwargs):
+    def get_device_app_bindings(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Device App Bindings'
         geturl = '{0}/device_app_bindings/'.format(self.base_url)
 
@@ -283,7 +284,7 @@ class NcmClient:
         return result
 
     # This method gives device app state information for all device app states associated with the account.
-    def get_device_app_states(self, suppressprint=self.suppressprint, **kwargs):
+    def get_device_app_states(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Device App States'
         geturl = '{0}/device_app_states/'.format(self.base_url)
 
@@ -303,7 +304,7 @@ class NcmClient:
         return result
 
     # This method gives device app version information for all device app versions associated with the account.
-    def get_device_app_versions(self, suppressprint=self.suppressprint, **kwargs):
+    def get_device_app_versions(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Device App Versions'
         geturl = '{0}/device_app_versions/'.format(self.base_url)
 
@@ -323,7 +324,7 @@ class NcmClient:
         return result
 
     # This method gives device app information for all device apps associated with the account.
-    def get_device_apps(self, suppressprint=self.suppressprint, **kwargs):
+    def get_device_apps(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Device Apps'
         geturl = '{0}/device_apps/'.format(self.base_url)
 
@@ -343,7 +344,7 @@ class NcmClient:
         return result
 
     # This method returns a list of Failover Events for a device, group, or account.
-    def get_failovers(self, suppressprint=self.suppressprint, **kwargs):
+    def get_failovers(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Failovers'
         geturl = '{0}/failovers/'.format(self.base_url)
 
@@ -362,7 +363,7 @@ class NcmClient:
         return result
 
     # This operation gives the list of device firmwares.
-    def get_firmwares(self, suppressprint=self.suppressprint, **kwargs):
+    def get_firmwares(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Firmwares'
         geturl = '{0}/firmwares/'.format(self.base_url)
 
@@ -389,7 +390,7 @@ class NcmClient:
         return
 
     # This method gives a groups list.
-    def get_groups(self, suppressprint=self.suppressprint, **kwargs):
+    def get_groups(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Groups'
         geturl = '{0}/groups/'.format(self.base_url)
 
@@ -408,7 +409,7 @@ class NcmClient:
         return result
 
     # This method returns a single group.
-    def get_group(self, group_id, suppressprint=self.suppressprint):
+    def get_group(self, group_id, suppressprint=suppress_print):
         call_type = 'Get Groups'
         geturl = '{0}/groups/'.format(self.base_url)
         params = {'id': str(group_id)}
@@ -431,7 +432,7 @@ class NcmClient:
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
     # Example: n.create_group_by_name('123456', 'My New Group', 'IBR200', '7.2.0')
-    def create_group(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=self.suppressprint):
+    def create_group(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
@@ -455,7 +456,7 @@ class NcmClient:
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
     # Example: n.create_group_by_name('Lab', 'My New Group', 'IBR200', '7.2.0')
-    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_version, suppressprint=self.suppressprint):
+    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
@@ -475,7 +476,7 @@ class NcmClient:
         return result
 
     # This operation renames a group.
-    def rename_group(self, group_id, new_group_name, suppressprint=self.suppressprint):
+    def rename_group(self, group_id, new_group_name, suppressprint=suppress_print):
         call_type = 'Rename Group'
         puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
 
@@ -488,7 +489,7 @@ class NcmClient:
         return result
 
     # This operation renames a group by name.
-    def rename_group_by_name(self, existing_group_name, new_group_name, suppressprint=self.suppressprint):
+    def rename_group_by_name(self, existing_group_name, new_group_name, suppressprint=suppress_print):
         call_type = 'Rename Group By Name'
         group_id = self.get_group_by_name(existing_group_name)['id']
 
@@ -502,7 +503,7 @@ class NcmClient:
         return result
 
     # This operation deletes a group.
-    def delete_group(self, group_id, suppressprint=self.suppressprint):
+    def delete_group(self, group_id, suppressprint=suppress_print):
         call_type = 'Delete Group'
         posturl = '{0}/group/{1}'.format(self.base_url, group_id)
 
@@ -511,7 +512,7 @@ class NcmClient:
         return result
 
     # This operation deletes a group.
-    def delete_group_by_name(self, group_name, suppressprint=self.suppressprint):
+    def delete_group_by_name(self, group_name, suppressprint=suppress_print):
         call_type = 'Delete Subaccount By Name'
         group_id = self.get_group_by_name(group_name)['id']
 
@@ -521,7 +522,7 @@ class NcmClient:
         return result
 
     # This method returns a list of locations visited by a device.
-    def get_historical_locations(self, router_id, suppressprint=self.suppressprint, **kwargs):
+    def get_historical_locations(self, router_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Historical Locations'
         geturl = '{0}/historical_locations/?router={1}'.format(self.base_url, router_id)
 
@@ -540,7 +541,7 @@ class NcmClient:
         return result
 
     # This method gives a list of locations.
-    def get_locations(self, suppressprint=self.suppressprint, **kwargs):
+    def get_locations(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Locations'
         geturl = '{0}/locations/'.format(self.base_url)
 
@@ -559,7 +560,7 @@ class NcmClient:
         return result
 
     # This operation gets cellular heath scores, by device.
-    def get_net_device_health(self, suppressprint=self.suppressprint, **kwargs):
+    def get_net_device_health(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Device Health'
         geturl = '{0}/net_device_health/'.format(self.base_url)
 
@@ -580,7 +581,7 @@ class NcmClient:
     # This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
     # net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
     # many net_devices at once.
-    def get_net_device_metrics(self, suppressprint=self.suppressprint, **kwargs):
+    def get_net_device_metrics(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Device Metrics'
         geturl = '{0}/net_device_metrics/'.format(self.base_url)
 
@@ -601,7 +602,7 @@ class NcmClient:
     # This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
     # net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
     # many net_devices at once.
-    def get_net_device_signal_samples(self, suppressprint=self.suppressprint, **kwargs):
+    def get_net_device_signal_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Device Signal Samples'
         geturl = '{0}/net_device_signal_samples/'.format(self.base_url)
 
@@ -623,7 +624,7 @@ class NcmClient:
         return result
 
     # This method provides information about the net device's overall network traffic.
-    def get_net_device_usage_samples(self, suppressprint=self.suppressprint, **kwargs):
+    def get_net_device_usage_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Device Usage Samples'
         geturl = '{0}/net_device_usage_samples/'.format(self.base_url)
 
@@ -645,7 +646,7 @@ class NcmClient:
         return result
 
     # This method gives a list of net devices.
-    def get_net_devices(self, suppressprint=self.suppressprint, **kwargs):
+    def get_net_devices(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Net Devices'
         geturl = '{0}/net_devices/'.format(self.base_url)
 
@@ -666,7 +667,7 @@ class NcmClient:
         return result
 
     # This method gives a list of net devices filtered by type.
-    def get_net_devices_by_type(self, device_type, suppressprint=self.suppressprint):
+    def get_net_devices_by_type(self, device_type, suppressprint=suppress_print):
         call_type = 'Get Net Devices By Type'
         geturl = '{0}/net_devices/?type={1}'.format(self.base_url, str(device_type))
 
@@ -675,7 +676,7 @@ class NcmClient:
         return result
 
     # This method gives a list of net devices for a given router.
-    def get_net_devices_for_router(self, router_id, suppressprint=self.suppressprint):
+    def get_net_devices_for_router(self, router_id, suppressprint=suppress_print):
         call_type = 'Get Net Devices For Router'
         geturl = '{0}/net_devices/?router={1}'.format(self.base_url, str(router_id))
 
@@ -684,7 +685,7 @@ class NcmClient:
         return result
 
     # This method gives a list of net devices for a given router, filtered by mode (lan/wan).
-    def get_net_devices_for_router_by_mode(self, router_id, mode, suppressprint=self.suppressprint):
+    def get_net_devices_for_router_by_mode(self, router_id, mode, suppressprint=suppress_print):
         call_type = 'Get Net Devices For Router By Mode'
         geturl = '{0}/net_devices/?router={1}&mode={2}'.format(self.base_url, str(router_id), str(mode))
 
@@ -693,7 +694,7 @@ class NcmClient:
         return result
 
     # This method gives a list of product information.
-    def get_products(self, suppressprint=self.suppressprint, **kwargs):
+    def get_products(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Products'
         geturl = '{0}/products/'.format(self.base_url)
 
@@ -720,7 +721,7 @@ class NcmClient:
         return
 
     # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
-    def reboot_device(self, router_id, suppressprint=self.suppressprint):
+    def reboot_device(self, router_id, suppressprint=suppress_print):
         call_type = 'Reboot Device'
         posturl = '{0}/reboot_activity/'.format(self.base_url)
 
@@ -733,7 +734,7 @@ class NcmClient:
         return result
 
     # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
-    def reboot_group(self, group_id, suppressprint=self.suppressprint):
+    def reboot_group(self, group_id, suppressprint=suppress_print):
         call_type = 'Reboot Group'
         posturl = '{0}/reboot_activity/'.format(self.base_url)
 
@@ -748,7 +749,7 @@ class NcmClient:
     # This method provides a history of device alerts. To receive device alerts, you must enable them
     # through the ECM UI: Alerts -> Settings. The info section of the alert is firmware dependent and
     # may change between firmware releases.
-    def get_router_alerts(self, suppressprint=self.suppressprint, **kwargs):
+    def get_router_alerts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router Alerts'
         geturl = '{0}/router_alerts/'.format(self.base_url)
 
@@ -772,7 +773,7 @@ class NcmClient:
     # This method provides a history of device events. To receive device logs, you must enable them on the
     # Group settings form. Enabling device logs can significantly increase the ECM network traffic from the
     # device to the server depending on how quickly the device is generating events.
-    def get_router_logs(self, router_id, suppressprint=self.suppressprint, **kwargs):
+    def get_router_logs(self, router_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router Logs'
         geturl = '{0}/router_logs/?router={1}'.format(self.base_url, router_id)
 
@@ -793,7 +794,7 @@ class NcmClient:
         return result
 
     # This method provides information about the connection state of the device with the ECM server.
-    def get_router_state_samples(self, suppressprint=self.suppressprint, **kwargs):
+    def get_router_state_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router State Samples'
         geturl = '{0}/router_state_samples/'.format(self.base_url)
 
@@ -815,7 +816,7 @@ class NcmClient:
         return result
 
     # This method provides information about the connection state of the device with the ECM server.
-    def get_router_stream_usage_samples(self, suppressprint=self.suppressprint, **kwargs):
+    def get_router_stream_usage_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router Stream Usage Samples'
         geturl = '{0}/router_stream_usage_samples/'.format(self.base_url)
 
@@ -837,7 +838,7 @@ class NcmClient:
         return result
 
     # This method gives device information with associated id.
-    def get_routers(self, suppressprint=self.suppressprint, **kwargs):
+    def get_routers(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Routers'
         geturl = '{0}/routers/'.format(self.base_url)
 
@@ -859,7 +860,7 @@ class NcmClient:
         return result
 
     # This method gives device information for a given router id.
-    def get_router(self, router_id, suppressprint=self.suppressprint, **kwargs):
+    def get_router(self, router_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router'
         geturl = '{0}/routers/?id={1}'.format(self.base_url, str(router_id))
 
@@ -880,7 +881,7 @@ class NcmClient:
         return result
 
     # This method gives device information for a given router id.
-    def get_router_by_name(self, router_name, suppressprint=self.suppressprint, **kwargs):
+    def get_router_by_name(self, router_name, suppressprint=suppress_print, **kwargs):
         for r in self.get_routers(limit='2000')['data']:
             if r['name'] == str(router_name):
                 return r
@@ -889,7 +890,7 @@ class NcmClient:
         return
 
     # This method gives a groups list filtered by account.
-    def get_routers_for_account(self, account_id, suppressprint=self.suppressprint, **kwargs):
+    def get_routers_for_account(self, account_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Routers for Account'
         geturl = '{0}/routers/?account={1}'.format(self.base_url, str(account_id))
 
@@ -910,7 +911,7 @@ class NcmClient:
         return result
 
     # This method gives a groups list filtered by group.
-    def get_routers_for_group(self, group_id, suppressprint=self.suppressprint, **kwargs):
+    def get_routers_for_group(self, group_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Routers for Group'
         geturl = '{0}/routers/?group={1}'.format(self.base_url, str(group_id))
 
@@ -931,7 +932,7 @@ class NcmClient:
         return result
 
     # This operation renames a router.
-    def rename_router(self, router_id, new_router_name, suppressprint=self.suppressprint):
+    def rename_router(self, router_id, new_router_name, suppressprint=suppress_print):
         call_type = 'Rename Router'
         puturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
 
@@ -944,7 +945,7 @@ class NcmClient:
         return result
 
     # This operation renames a router by name.
-    def rename_router_by_name(self, existing_router_name, new_router_name, suppressprint=self.suppressprint):
+    def rename_router_by_name(self, existing_router_name, new_router_name, suppressprint=suppress_print):
         call_type = 'Rename Router By Name'
         router_id = self.get_router_by_name(existing_router_name)['id']
         print("ROUTER ID: {}".format(router_id))
@@ -960,7 +961,7 @@ class NcmClient:
         return result
 
     # This operation deletes a router.
-    def delete_router(self, router_id, suppressprint=self.suppressprint):
+    def delete_router(self, router_id, suppressprint=suppress_print):
         call_type = 'Delete Router'
         posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
 
@@ -969,7 +970,7 @@ class NcmClient:
         return result
 
     # This operation deletes a router by name.
-    def delete_router_by_name(self, router_name, suppressprint=self.suppressprint):
+    def delete_router_by_name(self, router_name, suppressprint=suppress_print):
         call_type = 'Delete Router'
         router_id = self.get_router_by_name(router_name)['id']
         posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
@@ -979,7 +980,7 @@ class NcmClient:
         return result
 
     # Gets the results of a speed test job. The results are updated with the latest known state of the speed tests.
-    def get_speed_test(self, speed_test_id, suppressprint=self.suppressprint):
+    def get_speed_test(self, speed_test_id, suppressprint=suppress_print):
         call_type = 'Get Speed Test'
         geturl = '{0}/speed_test/{1}/'.format(self.base_url, str(speed_test_id))
 
@@ -989,7 +990,7 @@ class NcmClient:
 
     # TODO
     # Creates a speed test job that queues/runs speed tests for a given list of network devices.
-    # def create_speed_test(self, router_ids, suppressprint=self.suppressprint):
+    # def create_speed_test(self, router_ids, suppressprint=suppress_print):
     #    call_type = 'Create Speed Test'
     #    posturl = '{0}/speed_test/'.format(self.base_url)
     #
@@ -1004,7 +1005,7 @@ class NcmClient:
     #    return result
 
     # Deletes a speed test job. Deleting a job aborts it, but any test already started on a router will finish.
-    def delete_speed_test(self, speed_test_id, suppressprint=self.suppressprint):
+    def delete_speed_test(self, speed_test_id, suppressprint=suppress_print):
         call_type = 'Delete Speed Test'
         posturl = '{0}/routers/{1}'.format(self.base_url, speed_test_id)
 
@@ -1013,7 +1014,7 @@ class NcmClient:
         return result
 
     # This method sets the IP Address for the Primary LAN for a given router id.
-    def set_lan_ip_address(self, router_id, lan_ip, suppressprint=self.suppressprint):
+    def set_lan_ip_address(self, router_id, lan_ip, suppressprint=suppress_print):
         call_type = 'Set LAN IP Address'
 
         response = self.session.get('{0}/configuration_managers/?router.id={1}&fields=id'.format(
