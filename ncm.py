@@ -1,8 +1,6 @@
-import config
 import requests
 import json
 
-base_url = 'https://www.cradlepointecm.com/api/v2'
 suppress_print = False
 
 
@@ -113,20 +111,27 @@ class NcmClient:
         geturl = '{0}/accounts/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
-                          'name__in', 'expand']
+                          'name__in', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This method returns a single account with its information.
+    def get_account_by_name(self, account_name):
+        for a in self.get_accounts(limit='200')['data']:
+            if a['name'] == account_name:
+                return a
+        print("ERROR: Invalid Account Name")
+        return
 
     # This operation creates a new sub-account.
     def create_subaccount(self, parent_account_id, subaccount_name, suppressprint=suppress_print):
@@ -139,9 +144,6 @@ class NcmClient:
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -155,9 +157,6 @@ class NcmClient:
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -167,9 +166,6 @@ class NcmClient:
         posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
 
         ncm = self.session.delete(posturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -187,11 +183,8 @@ class NcmClient:
             print("ERROR: No Account found with name: {}".format(str(subaccount_name)))
         else:
             ncm = self.session.delete(posturl)
-            #
-            # Call return handler function to parse NCM response
-            #
-            result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-            return result
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
 
     # This method returns NCM activity log information.
     def get_activity_logs(self, suppressprint=suppress_print, **kwargs):
@@ -200,19 +193,19 @@ class NcmClient:
 
         allowed_params = ['account', 'created_at__exact', 'created_at__lt', 'created_at__lte', 'created_at__gt',
                           'created_at__gte', 'action__timestamp__exact', 'action__timestamp__lt',
-                          'action__timestamp__lte','action__timestamp__gt', 'action__timestamp__gte', 'actor__id',
-                          'object__id', 'action__id__exact', 'actor__type', 'action__type', 'object__type']
+                          'action__timestamp__lte', 'action__timestamp__gt', 'action__timestamp__gte', 'actor__id',
+                          'object__id', 'action__id__exact', 'actor__type', 'action__type', 'object__type',
+                          'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -222,18 +215,17 @@ class NcmClient:
         geturl = '{0}/alerts/'.format(self.base_url)
 
         allowed_params = ['account', 'created_at', 'created_at_timeuuid', 'detected_at', 'friendly_info', 'info',
-                          'router', 'type']
+                          'router', 'type', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -244,32 +236,28 @@ class NcmClient:
         geturl = '{0}/configuration_managers/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router_in', 'synched',
-                          'suspended', 'expand']
+                          'suspended', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This method updates an configuration_managers for associated id
-    def update_configuration_managers(self, configman_id, configman_json, suppressprint=suppress_print, **kwargs):
+    def update_configuration_managers(self, configman_id, configman_json, suppressprint=suppress_print):
         call_type = 'Update Configuration Manager'
         puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, configman_id)
 
         payload = str(configman_json)
 
         ncm = self.session.put(puturl, data=json.dumps(payload))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -279,18 +267,17 @@ class NcmClient:
         geturl = '{0}/device_app_bindings/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'group', 'group__in', 'app_version', 'app_version__in',
-                          'id', 'id__in', 'state', 'state__in', 'expand']
+                          'id', 'id__in', 'state', 'state__in', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -300,18 +287,17 @@ class NcmClient:
         geturl = '{0}/device_app_states/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'router', 'router__in', 'app_version', 'app_version__in',
-                          'id', 'id__in', 'state', 'state__in', 'expand']
+                          'id', 'id__in', 'state', 'state__in', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -320,18 +306,18 @@ class NcmClient:
         call_type = 'Get Device App Versions'
         geturl = '{0}/device_app_versions/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'app', 'app__in', 'id', 'id__in', 'state', 'state__in', 'expand']
+        allowed_params = ['account', 'account__in', 'app', 'app__in', 'id', 'id__in', 'state', 'state__in',
+                          'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -340,18 +326,18 @@ class NcmClient:
         call_type = 'Get Device Apps'
         geturl = '{0}/device_apps/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'name', 'name__in', 'id', 'id__in', 'uuid', 'uuid__in', 'expand']
+        allowed_params = ['account', 'account__in', 'name', 'name__in', 'id', 'id__in', 'uuid', 'uuid__in',
+                          'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -367,11 +353,10 @@ class NcmClient:
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -387,74 +372,78 @@ class NcmClient:
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This operation returns firmwares for a given model ID and version name.
+    def get_firmware_for_product_by_version(self, product_id, firmware_name):
+        for f in self.get_firmwares(version=firmware_name, limit='200')['data']:
+            if f['product'] == '{0}}/products/{1}/'.format(self.base_url, str(product_id)):
+                return f
+        print("ERROR: Invalid Firmware Version")
+        return
 
     # This method gives a groups list.
     def get_groups(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Groups'
         geturl = '{0}/groups/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name', 'name__in', 'expand']
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'name', 'name__in', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This method returns a single group.
+    def get_group(self, group_id, suppressprint=suppress_print):
+        call_type = 'Get Groups'
+        geturl = '{0}/groups/'.format(self.base_url)
+        params = {'id': str(group_id)}
+        ncm = self.session.get(geturl, params=params)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method returns a single group.
+    def get_group_by_name(self, group_name):
+        for g in self.get_groups()['data']:
+            if g['name'] == str(group_name):
+                return g
+
+        print("ERROR: Invalid Group Name. Check spelling and permissions.")
+        return
 
     # This operation creates a new group.
     # parent_account_id: ID of parent account
     # group_name: Name for new group
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
-    def create_group(self, parent_account_id, group_name, product_name, firmware_name, suppressprint=suppress_print):
+    def create_group(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
-        product = ''
-        firmware = ''
-
-        for p in self.get_products(limit='200')['data']:
-            if p['name'] == product_name:
-                product = p['id']
-                print("PRODUCT: {}".format(product))
-                continue
-
-        for f in self.get_firmwares(version=firmware_name)['data']:
-            if f['product'] == 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(product):
-                firmware = f['id']
-
-        if product is '':
-            print("ERROR: Invalid Product Name")
-            return
-        if firmware is '':
-            print("ERROR: Invalid Firmware Version")
-            return
+        product = self.get_product_by_name(product_name)['resource_url']
+        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)['resource_url']
 
         postdata = {
             'account': '/api/v1/accounts/{}/'.format(str(parent_account_id)),
             'name': str(group_name),
-            'product': 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(str(product)),
-            'target_firmware': 'https://www.cradlepointecm.com/api/v2/firmwares/{}/'.format(str(firmware))
+            'product': str(product),
+            'target_firmware': str(firmware)
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -464,134 +453,87 @@ class NcmClient:
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
     # Example: n.create_group_by_name('Lab', 'My New Group', 'IBR200', '7.2.0')
-    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_name, suppressprint=suppress_print):
+    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
-        account = ''
-        product = ''
-        firmware = ''
-
-        for a in self.get_accounts()['data']:
-            if a['name'] == parent_account_name:
-                account = a['id']
-                continue
-
-        for p in self.get_products(limit='200')['data']:
-            if p['name'] == product_name:
-                product = p['id']
-                print("PRODUCT: {}".format(product))
-                continue
-
-        for f in self.get_firmwares(version=firmware_name)['data']:
-            if f['product'] == 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(product):
-                firmware = f['id']
-
-        if account is '':
-            print('ERROR: Invalid Account Name')
-            return
-        if product is '':
-            print("ERROR: Invalid Product Name")
-            return
-        if firmware is '':
-            print("ERROR: Invalid Firmware Version")
-            return
+        account = self.get_account_by_name(parent_account_name)
+        product = self.get_product_by_name(product_name)
+        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)
 
         postdata = {
-            'account': '/api/v1/accounts/{}/'.format(str(account)),
+            'account': '/api/v1/accounts/{}/'.format(str(account['id'])),
             'name': str(group_name),
-            'product': 'https://www.cradlepointecm.com/api/v2/products/{}/'.format(str(product)),
-            'target_firmware': 'https://www.cradlepointecm.com/api/v2/firmwares/{}/'.format(str(firmware))
+            'product': str(product['resource_url']),
+            'target_firmware': str(firmware['resource_url'])
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    #TODO: CREATE UPDATE_GROUP AND UPDATE_GROUP_BY_NAME FUNCTIONS
-
-    # This operation updates a group.
-    def update_group(self, group_id, suppressprint=suppress_print):
-        call_type = 'Update Group By Name'
+    # This operation renames a group.
+    def rename_group(self, group_id, new_group_name, suppressprint=suppress_print):
+        call_type = 'Rename Group'
         puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
 
-        #TODO
         putdata = {
-            # 'name': str(subaccount_name)
+            'name': str(new_group_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This operation updates a group.
-    def update_group_by_name(self, group_name, suppressprint=suppress_print):
-        call_type = 'Update Group By Name'
-        #TODO
-        #puturl = '{0}/groups/{1}'.format(self.base_url, subaccount_id)
+    # This operation renames a group by name.
+    def rename_group_by_name(self, existing_group_name, new_group_name, suppressprint=suppress_print):
+        call_type = 'Rename Group By Name'
+        group_id = self.get_group_by_name(existing_group_name)['id']
 
-        #TODO
+        puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
         putdata = {
-            # 'name': str(subaccount_name)
+            'name': str(new_group_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This operation deletes a group.
     def delete_group(self, group_id, suppressprint=suppress_print):
-        call_type = 'Delete Subccount'
+        call_type = 'Delete Group'
         posturl = '{0}/group/{1}'.format(self.base_url, group_id)
 
         ncm = self.session.delete(posturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    #TODO
     # This operation deletes a group.
-    def delete_group_by_name(self, group_id, suppressprint=suppress_print):
-        call_type = 'Delete Subccount By Name'
-        #TODO
-        #posturl = '{0}/group/{1}'.format(self.base_url, group_id)
+    def delete_group_by_name(self, group_name, suppressprint=suppress_print):
+        call_type = 'Delete Subaccount By Name'
+        group_id = self.get_group_by_name(group_name)['id']
 
+        posturl = '{0}/group/{1}'.format(self.base_url, group_id)
         ncm = self.session.delete(posturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
-
 
     # This method returns a list of locations visited by a device.
     def get_historical_locations(self, router_id, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Historical Locations'
         geturl = '{0}/historical_locations/?router={1}'.format(self.base_url, router_id)
 
-        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'limit']
+        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -600,18 +542,17 @@ class NcmClient:
         call_type = 'Get Locations'
         geturl = '{0}/locations/'.format(self.base_url)
 
-        allowed_params = ['id', 'id__in']
+        allowed_params = ['id', 'id__in', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -627,11 +568,10 @@ class NcmClient:
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -642,18 +582,17 @@ class NcmClient:
         call_type = 'Get Net Device Metrics'
         geturl = '{0}/net_device_metrics/'.format(self.base_url)
 
-        allowed_params = ['net_device', 'net_device__in', 'update_ts__lt', 'update_ts__gt']
+        allowed_params = ['net_device', 'net_device__in', 'update_ts__lt', 'update_ts__gt', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -666,18 +605,18 @@ class NcmClient:
 
         allowed_params = ['net_device', 'net_device__in', 'created_at', 'created_at__lt', 'created_at__gt',
                           'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
-                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
+                          'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -688,18 +627,18 @@ class NcmClient:
 
         allowed_params = ['net_device', 'net_device__in', 'created_at', 'created_at__lt', 'created_at__gt',
                           'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
-                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
+                          'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -710,18 +649,17 @@ class NcmClient:
 
         allowed_params = ['account', 'account__in', 'connection_state', 'connection_state__in', 'id', 'id__in',
                           'is_asset', 'ipv4_address', 'ipv4_address', 'mode', 'mode__in', 'router', 'router__in',
-                          'expand']
+                          'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -731,9 +669,6 @@ class NcmClient:
         geturl = '{0}/net_devices/?type={1}'.format(self.base_url, str(device_type))
 
         ncm = self.session.get(geturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -743,9 +678,6 @@ class NcmClient:
         geturl = '{0}/net_devices/?router={1}'.format(self.base_url, str(router_id))
 
         ncm = self.session.get(geturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -755,9 +687,6 @@ class NcmClient:
         geturl = '{0}/net_devices/?router={1}&mode={2}'.format(self.base_url, str(router_id), str(mode))
 
         ncm = self.session.get(geturl)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -773,11 +702,44 @@ class NcmClient:
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This method returns a product for a given model name..
+    def get_product_by_name(self, product_name):
+        for p in self.get_products(limit='200')['data']:
+            if p['name'] == product_name:
+                return p
+        print("ERROR: Invalid Product Name")
+        return
+
+    # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
+    def reboot_device(self, router_id, suppressprint=suppress_print):
+        call_type = 'Reboot Device'
+        posturl = '{0}/reboot_activity/'.format(self.base_url)
+
+        postdata = {
+            'router': '{0}/routers/{1}/'.format(self.base_url, str(router_id))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
+    def reboot_group(self, group_id, suppressprint=suppress_print):
+        call_type = 'Reboot Group'
+        posturl = '{0}/reboot_activity/'.format(self.base_url)
+
+        postdata = {
+            'group': '{0}/groups/{1}/'.format(self.base_url, str(group_id))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -786,22 +748,22 @@ class NcmClient:
     # may change between firmware releases.
     def get_router_alerts(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router Alerts'
-        geturl = '{0}/router_alerts/'.format(self.base_url, router_id)
+        geturl = '{0}/router_alerts/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt', 'created_at_timeuuid',
-                          'created_at_timeuuid__in', 'created_at_timeuuid__gt', 'created_at_timeuuid__gte',
-                          'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+                          'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
+                          'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -814,62 +776,61 @@ class NcmClient:
 
         allowed_params = ['created_at', 'created_at__lt', 'created_at__gt', 'created_at_timeuuid',
                           'created_at_timeuuid__in', 'created_at_timeuuid__gt', 'created_at_timeuuid__gte',
-                          'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+                          'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This method provides information about the connection state of the device with the ECM server.
     def get_router_state_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router State Samples'
-        geturl = '{0}/router_state_samples/'.format(self.base_url, router_id)
+        geturl = '{0}/router_state_samples/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt', 'created_at_timeuuid',
-                          'created_at_timeuuid__in', 'created_at_timeuuid__gt', 'created_at_timeuuid__gte',
-                          'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+                          'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
+                          'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This method provides information about the connection state of the device with the ECM server.
     def get_router_stream_usage_samples(self, suppressprint=suppress_print, **kwargs):
         call_type = 'Get Router Stream Usage Samples'
-        geturl = '{0}/router_stream_usage_samples/'.format(self.base_url, router_id)
+        geturl = '{0}/router_stream_usage_samples/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt', 'created_at_timeuuid',
-                          'created_at_timeuuid__in', 'created_at_timeuuid__gt', 'created_at_timeuuid__gte',
-                          'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by']
+        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+                          'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
+                          'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
+                          'order_by', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -881,18 +842,17 @@ class NcmClient:
         allowed_params = ['account', 'account__in', 'group', 'group__in', 'id', 'id__in',
                           'ipv4_address', 'ipv4_address__in', 'mac', 'mac__in', 'name', 'name__in', 'state',
                           'state__in', 'state_updated_at__lt', 'state_updated_at__gt', 'updated_at__lt',
-                          'updated_at__gt', 'expand']
+                          'updated_at__gt', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -903,20 +863,28 @@ class NcmClient:
 
         allowed_params = ['account', 'account__in', 'group', 'group__in', 'ipv4_address', 'ipv4_address__in',
                           'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand']
+                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
+
+    # This method gives device information for a given router id.
+    def get_router_by_name(self, router_name, suppressprint=suppress_print, **kwargs):
+        for r in self.get_routers(limit='2000'):
+            if r['name'] == str(router_name):
+                return r
+
+        print("ERROR: Router name not found")
+        return
 
     # This method gives a groups list filtered by account.
     def get_routers_for_account(self, account_id, suppressprint=suppress_print, **kwargs):
@@ -925,18 +893,17 @@ class NcmClient:
 
         allowed_params = ['group', 'group__in', 'id', 'id__in', 'ipv4_address', 'ipv4_address__in',
                           'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand']
+                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -947,18 +914,63 @@ class NcmClient:
 
         allowed_params = ['account', 'account__in', 'id', 'id__in', 'ipv4_address', 'ipv4_address__in',
                           'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand']
+                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
         if len(bad_params) > 0:
             print("INVALID PARAMETERS: ")
             print(bad_params)
+            print("Skipping call: {}".format(call_type))
+            return
 
         ncm = self.session.get(geturl, params=params)
-        #
-        # Call return handler function to parse NCM response
-        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation renames a router.
+    def rename_router(self, router_id, new_router_name, suppressprint=suppress_print):
+        call_type = 'Rename Router'
+        puturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+
+        putdata = {
+            'name': str(new_router_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation renames a router by name.
+    def rename_router_by_name(self, existing_router_name, new_router_name, suppressprint=suppress_print):
+        call_type = 'Rename Router By Name'
+        router_id = self.get_router_by_name(existing_router_name)['id']
+
+        puturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+        putdata = {
+            'name': str(new_router_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation deletes a router.
+    def delete_router(self, router_id, suppressprint=suppress_print):
+        call_type = 'Delete Router'
+        posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+
+        ncm = self.session.delete(posturl)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation deletes a router by name.
+    def delete_router_by_name(self, router_name, suppressprint=suppress_print):
+        call_type = 'Delete Router'
+        router_id = self.get_router_by_name(router_name)['id']
+        posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+
+        ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -968,9 +980,31 @@ class NcmClient:
         geturl = '{0}/speed_test/{1}/'.format(self.base_url, str(speed_test_id))
 
         ncm = self.session.get(geturl)
-        #
-        # Call return handler function to parse NCM response
-        #
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # TODO
+    # Creates a speed test job that queues/runs speed tests for a given list of network devices.
+    # def create_speed_test(self, router_ids, suppressprint=suppress_print):
+    #    call_type = 'Create Speed Test'
+    #    posturl = '{0}/speed_test/'.format(self.base_url)
+    #
+    #    self.__isjson(router_ids)
+    #
+    #    postdata = {
+    #        'routers': router_ids
+    #    }
+    #
+    #    ncm = self.session.post(posturl, data=json.dumps(postdata))
+    #    result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+    #    return result
+
+    # Deletes a speed test job. Deleting a job aborts it, but any test already started on a router will finish.
+    def delete_speed_test(self, speed_test_id, suppressprint=suppress_print):
+        call_type = 'Delete Speed Test'
+        posturl = '{0}/routers/{1}'.format(self.base_url, speed_test_id)
+
+        ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -978,7 +1012,8 @@ class NcmClient:
     def set_lan_ip_address(self, router_id, lan_ip, suppressprint=suppress_print):
         call_type = 'Set LAN IP Address'
 
-        response = self.session.get('{0}/configuration_managers/?router.id={1}&fields=id'.format(self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
+        response = self.session.get('{0}/configuration_managers/?router.id={1}&fields=id'.format(
+            self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
         response = json.loads(response.content.decode("utf-8"))  # Decode the response and make it a dictionary
         configman_id = response['data'][0]['id']  # get the Configuration Managers ID from response
         payload = {
@@ -995,6 +1030,6 @@ class NcmClient:
             ]
         }
         ncm = requests.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
-                           data=json.dumps(payload))  # Patch indie config with new values
+                             data=json.dumps(payload))  # Patch indie config with new values
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
