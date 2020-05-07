@@ -879,7 +879,7 @@ class NcmClient:
 
     # This method gives device information for a given router id.
     def get_router_by_name(self, router_name, suppressprint=suppress_print, **kwargs):
-        for r in self.get_routers(limit='2000'):
+        for r in self.get_routers(limit='2000')['data']:
             if r['name'] == str(router_name):
                 return r
 
@@ -931,7 +931,7 @@ class NcmClient:
     # This operation renames a router.
     def rename_router(self, router_id, new_router_name, suppressprint=suppress_print):
         call_type = 'Rename Router'
-        puturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+        puturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
 
         putdata = {
             'name': str(new_router_name)
@@ -945,11 +945,13 @@ class NcmClient:
     def rename_router_by_name(self, existing_router_name, new_router_name, suppressprint=suppress_print):
         call_type = 'Rename Router By Name'
         router_id = self.get_router_by_name(existing_router_name)['id']
+        print("ROUTER ID: {}".format(router_id))
 
-        puturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+        puturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
         putdata = {
             'name': str(new_router_name)
         }
+        print("PUTDATA: {}".format(putdata))
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
