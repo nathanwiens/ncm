@@ -17,11 +17,6 @@ class NcmClient:
         })
 
     def __isjson(self, myjson):
-        """
-        Args:
-            myjson: String variable to be validated if it is JSON
-        Returns: None
-        """
         try:
             json_object = json.loads(myjson)
         except ValueError:
@@ -130,7 +125,7 @@ class NcmClient:
         for a in self.get_accounts(limit='200')['data']:
             if a['name'] == account_name:
                 return a
-        print("ERROR: Invalid Account Name")
+        print("ERROR: Invalid Account Name: {}. Check spelling and verify account exists.".format(account_name))
         return
 
     # This operation creates a new sub-account.
@@ -148,12 +143,26 @@ class NcmClient:
         return result
 
     # This operation updates a sub-account.
-    def update_subaccount(self, subaccount_id, subaccount_name, suppressprint=suppress_print):
-        call_type = 'Update Subccount'
+    def rename_subaccount(self, subaccount_id, new_subaccount_name, suppressprint=suppress_print):
+        call_type = 'Rename Subccount'
         puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
 
         putdata = {
-            'name': str(subaccount_name)
+            'name': str(new_subaccount_name)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
+        return result
+
+    # This operation renames a sub-account by name instead of ID.
+    def rename_subaccount_by_name(self, subaccount_name, new_subaccount_name, suppressprint=suppress_print):
+        call_type = 'Rename Subccount By Name'
+
+        puturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
+
+        putdata = {
+            'name': str(new_subaccount_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
@@ -173,16 +182,9 @@ class NcmClient:
     def delete_subaccount_by_name(self, subaccount_name, suppressprint=suppress_print):
         call_type = 'Delete Subccount By Name'
 
-        posturl = ''
-        for account in self.get_accounts()['data']:
-            if account['name'] == str(subaccount_name):
-                posturl = '{0}/accounts/{1}'.format(self.base_url, account['id'])
-                continue
+        posturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
 
-        if posturl is '':
-            print("ERROR: No Account found with name: {}".format(str(subaccount_name)))
-        else:
-            ncm = self.session.delete(posturl)
+        ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
@@ -429,6 +431,7 @@ class NcmClient:
     # group_name: Name for new group
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
+    # Example: n.create_group_by_name('123456', 'My New Group', 'IBR200', '7.2.0')
     def create_group(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
