@@ -121,16 +121,16 @@ class NcmClient:
         return result
 
     # This method returns a single account with its information.
-    def get_account_by_name(self, account_name):
-        for a in self.get_accounts(limit='200')['data']:
-            if a['name'] == account_name:
-                return a
-        print("ERROR: Invalid Account Name: {}. Check spelling and verify account exists.".format(account_name))
-        return
+    def get_account_by_id(self, account_id, suppressprint=suppress_print):
+        return self.get_accounts(id=account_id, suppressprint=suppressprint)['data'][0]
 
-    # This operation creates a new sub-account.
-    def create_subaccount(self, parent_account_id, subaccount_name, suppressprint=suppress_print):
-        call_type = 'Create Subccount'
+    # This method returns a single account with its information.
+    def get_account_by_name(self, account_name, suppressprint=suppress_print):
+        return self.get_accounts(name=account_name, suppressprint=suppressprint)['data'][0]
+
+    # This operation creates a new subaccount.
+    def create_subaccount_by_parent_id(self, parent_account_id, subaccount_name, suppressprint=suppress_print):
+        call_type = 'Create Subaccount'
         posturl = '{0}/accounts/'.format(self.base_url)
 
         postdata = {
@@ -142,35 +142,31 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This operation updates a sub-account.
-    def rename_subaccount(self, subaccount_id, new_subaccount_name, suppressprint=suppress_print):
-        call_type = 'Rename Subccount'
-        puturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
+    # This operation creates a new subaccount using the parent account name.
+    def create_subaccount_by_parent_name(self, parent_account_name, subaccount_name, suppressprint=suppress_print):
+        return self.create_subaccount_by_parent_id(self.get_account_by_name(
+            parent_account_name, suppressprint=suppressprint)['id'], subaccount_name, suppressprint=suppressprint)
+
+    # This operation updates a subaccount.
+    def rename_subaccount_by_id(self, subaccount_id, new_subaccount_name, suppressprint=suppress_print):
+        call_type = 'Rename Subaccount'
+        puturl = '{0}/accounts/{1}/'.format(self.base_url, str(subaccount_id))
 
         putdata = {
-            'name': str(new_subaccount_name)
+            "name": str(new_subaccount_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This operation renames a sub-account by name instead of ID.
+    # This operation renames a subaccount by name instead of ID.
     def rename_subaccount_by_name(self, subaccount_name, new_subaccount_name, suppressprint=suppress_print):
-        call_type = 'Rename Subccount By Name'
-
-        puturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
-
-        putdata = {
-            'name': str(new_subaccount_name)
-        }
-
-        ncm = self.session.put(puturl, data=json.dumps(putdata))
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.rename_subaccount_by_id(self.get_account_by_name(
+            subaccount_name, suppressprint=suppressprint)['id'], new_subaccount_name, suppressprint=suppressprint)
 
     # This operation deletes a sub-account.
-    def delete_subaccount(self, subaccount_id, suppressprint=suppress_print):
+    def delete_subaccount_by_id(self, subaccount_id, suppressprint=suppress_print):
         call_type = 'Delete Subccount'
         posturl = '{0}/accounts/{1}'.format(self.base_url, subaccount_id)
 
@@ -180,13 +176,8 @@ class NcmClient:
 
     # This operation deletes a sub-account.
     def delete_subaccount_by_name(self, subaccount_name, suppressprint=suppress_print):
-        call_type = 'Delete Subccount By Name'
-
-        posturl = '{0}/accounts/{1}'.format(self.base_url, self.get_account_by_name(subaccount_name)['id'])
-
-        ncm = self.session.delete(posturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.delete_subaccount_by_id(self.get_account_by_name(
+            subaccount_name, suppressprint=suppressprint)['id'])
 
     # This method returns NCM activity log information.
     def get_activity_logs(self, suppressprint=suppress_print, **kwargs):
@@ -197,7 +188,7 @@ class NcmClient:
                           'created_at__gte', 'action__timestamp__exact', 'action__timestamp__lt',
                           'action__timestamp__lte', 'action__timestamp__gt', 'action__timestamp__gte', 'actor__id',
                           'object__id', 'action__id__exact', 'actor__type', 'action__type', 'object__type',
-                          'limit', 'offset']
+                          'limit']
         params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
 
@@ -384,7 +375,7 @@ class NcmClient:
     # This operation returns firmwares for a given model ID and version name.
     def get_firmware_for_product_by_version(self, product_id, firmware_name):
         for f in self.get_firmwares(version=firmware_name, limit='200')['data']:
-            if f['product'] == '{0}}/products/{1}/'.format(self.base_url, str(product_id)):
+            if f['product'] == '{0}/products/{1}/'.format(self.base_url, str(product_id)):
                 return f
         print("ERROR: Invalid Firmware Version")
         return
@@ -409,22 +400,12 @@ class NcmClient:
         return result
 
     # This method returns a single group.
-    def get_group(self, group_id, suppressprint=suppress_print):
-        call_type = 'Get Groups'
-        geturl = '{0}/groups/'.format(self.base_url)
-        params = {'id': str(group_id)}
-        ncm = self.session.get(geturl, params=params)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+    def get_group_by_id(self, group_id, suppressprint=suppress_print):
+        return self.get_groups(id=group_id, suppressprint=suppressprint)['data'][0]
 
     # This method returns a single group.
-    def get_group_by_name(self, group_name):
-        for g in self.get_groups()['data']:
-            if g['name'] == str(group_name):
-                return g
-
-        print("ERROR: Invalid Group Name. Check spelling and permissions.")
-        return
+    def get_group_by_name(self, group_name, suppressprint=suppress_print):
+        return self.get_groups(name=group_name, suppressprint=suppressprint)['data'][0]
 
     # This operation creates a new group.
     # parent_account_id: ID of parent account
@@ -432,18 +413,18 @@ class NcmClient:
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
     # Example: n.create_group_by_name('123456', 'My New Group', 'IBR200', '7.2.0')
-    def create_group(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=suppress_print):
+    def create_group_by_parent_id(self, parent_account_id, group_name, product_name, firmware_version, suppressprint=suppress_print):
         call_type = 'Create Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
-        product = self.get_product_by_name(product_name)['resource_url']
-        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)['resource_url']
+        product = self.get_product_by_name(product_name)
+        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)
 
         postdata = {
             'account': '/api/v1/accounts/{}/'.format(str(parent_account_id)),
             'name': str(group_name),
-            'product': str(product),
-            'target_firmware': str(firmware)
+            'product': str(self.get_product_by_name(product_name)['resource_url']),
+            'target_firmware': str(firmware['resource_url'])
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
@@ -456,32 +437,19 @@ class NcmClient:
     # product_name: Product model (e.g. IBR200)
     # firmware_name: Firmware version for group (e.g. 7.2.0)
     # Example: n.create_group_by_name('Lab', 'My New Group', 'IBR200', '7.2.0')
-    def create_group_by_name(self, parent_account_name, group_name, product_name, firmware_version, suppressprint=suppress_print):
-        call_type = 'Create Group'
-        posturl = '{0}/groups/'.format(self.base_url)
-
-        account = self.get_account_by_name(parent_account_name)
-        product = self.get_product_by_name(product_name)
-        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)
-
-        postdata = {
-            'account': '/api/v1/accounts/{}/'.format(str(account['id'])),
-            'name': str(group_name),
-            'product': str(product['resource_url']),
-            'target_firmware': str(firmware['resource_url'])
-        }
-
-        ncm = self.session.post(posturl, data=json.dumps(postdata))
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+    def create_group_by_parent_name(self, parent_account_name, group_name, product_name, firmware_version,
+                                    suppressprint=suppress_print):
+        return self.create_group_by_parent_id(
+            self.get_account_by_name(parent_account_name, suppressprint=suppressprint)['id'], group_name, product_name,
+            firmware_version, suppressprint=suppressprint)
 
     # This operation renames a group.
-    def rename_group(self, group_id, new_group_name, suppressprint=suppress_print):
+    def rename_group_by_id(self, group_id, new_group_name, suppressprint=suppress_print):
         call_type = 'Rename Group'
-        puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
+        puturl = '{0}/groups/{1}/'.format(self.base_url, group_id)
 
         putdata = {
-            'name': str(new_group_name)
+            "name": str(new_group_name)
         }
 
         ncm = self.session.put(puturl, data=json.dumps(putdata))
@@ -490,22 +458,13 @@ class NcmClient:
 
     # This operation renames a group by name.
     def rename_group_by_name(self, existing_group_name, new_group_name, suppressprint=suppress_print):
-        call_type = 'Rename Group By Name'
-        group_id = self.get_group_by_name(existing_group_name)['id']
-
-        puturl = '{0}/groups/{1}'.format(self.base_url, group_id)
-        putdata = {
-            'name': str(new_group_name)
-        }
-
-        ncm = self.session.put(puturl, data=json.dumps(putdata))
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.rename_group_by_id(
+            self.get_group_by_name(existing_group_name)['id'], new_group_name, suppressprint=suppressprint)
 
     # This operation deletes a group.
-    def delete_group(self, group_id, suppressprint=suppress_print):
+    def delete_group_by_id(self, group_id, suppressprint=suppress_print):
         call_type = 'Delete Group'
-        posturl = '{0}/group/{1}'.format(self.base_url, group_id)
+        posturl = '{0}/groups/{1}/'.format(self.base_url, group_id)
 
         ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
@@ -513,13 +472,8 @@ class NcmClient:
 
     # This operation deletes a group.
     def delete_group_by_name(self, group_name, suppressprint=suppress_print):
-        call_type = 'Delete Subaccount By Name'
-        group_id = self.get_group_by_name(group_name)['id']
-
-        posturl = '{0}/group/{1}'.format(self.base_url, group_id)
-        ncm = self.session.delete(posturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.delete_group_by_id(
+            self.get_group_by_name(group_name)['id'], suppressprint=suppressprint)
 
     # This method returns a list of locations visited by a device.
     def get_historical_locations(self, router_id, suppressprint=suppress_print, **kwargs):
@@ -666,32 +620,13 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This method gives a list of net devices filtered by type.
-    def get_net_devices_by_type(self, device_type, suppressprint=suppress_print):
-        call_type = 'Get Net Devices By Type'
-        geturl = '{0}/net_devices/?type={1}'.format(self.base_url, str(device_type))
-
-        ncm = self.session.get(geturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
-
     # This method gives a list of net devices for a given router.
     def get_net_devices_for_router(self, router_id, suppressprint=suppress_print):
-        call_type = 'Get Net Devices For Router'
-        geturl = '{0}/net_devices/?router={1}'.format(self.base_url, str(router_id))
-
-        ncm = self.session.get(geturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.get_net_devices(router=router_id, suppressprint=suppressprint)
 
     # This method gives a list of net devices for a given router, filtered by mode (lan/wan).
     def get_net_devices_for_router_by_mode(self, router_id, mode, suppressprint=suppress_print):
-        call_type = 'Get Net Devices For Router By Mode'
-        geturl = '{0}/net_devices/?router={1}&mode={2}'.format(self.base_url, str(router_id), str(mode))
-
-        ncm = self.session.get(geturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.get_net_devices(router=router_id, mode=mode, suppressprint=suppressprint)
 
     # This method gives a list of product information.
     def get_products(self, suppressprint=suppress_print, **kwargs):
@@ -712,7 +647,11 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This method returns a product for a given model name..
+    # This method returns a single product by ID.
+    def get_product_by_id(self, product_id):
+        return self.get_products(id=product_id)
+
+    # This method returns a single product for a given model name.
     def get_product_by_name(self, product_name):
         for p in self.get_products(limit='200')['data']:
             if p['name'] == product_name:
@@ -720,7 +659,7 @@ class NcmClient:
         print("ERROR: Invalid Product Name")
         return
 
-    # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
+    # This operation reboots a device.
     def reboot_device(self, router_id, suppressprint=suppress_print):
         call_type = 'Reboot Device'
         posturl = '{0}/reboot_activity/'.format(self.base_url)
@@ -733,7 +672,7 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
-    # This operation reboots a device or a group. Fill out either the router field or group field depending on which should be rebooted.
+    # This operation reboots a group.
     def reboot_group(self, group_id, suppressprint=suppress_print):
         call_type = 'Reboot Group'
         posturl = '{0}/reboot_activity/'.format(self.base_url)
@@ -860,79 +799,23 @@ class NcmClient:
         return result
 
     # This method gives device information for a given router id.
-    def get_router(self, router_id, suppressprint=suppress_print, **kwargs):
-        call_type = 'Get Router'
-        geturl = '{0}/routers/?id={1}'.format(self.base_url, str(router_id))
-
-        allowed_params = ['account', 'account__in', 'group', 'group__in', 'ipv4_address', 'ipv4_address__in',
-                          'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
-        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
-        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
-
-        if len(bad_params) > 0:
-            print("INVALID PARAMETERS: ")
-            print(bad_params)
-            print("Skipping call: {}".format(call_type))
-            return
-
-        ncm = self.session.get(geturl, params=params)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+    def get_router_by_id(self, router_id, suppressprint=suppress_print):
+        return self.get_routers(id=router_id, suppressprint=suppressprint)['data'][0]
 
     # This method gives device information for a given router id.
-    def get_router_by_name(self, router_name, suppressprint=suppress_print, **kwargs):
-        for r in self.get_routers(limit='2000')['data']:
-            if r['name'] == str(router_name):
-                return r
-
-        print("ERROR: Router name not found")
-        return
+    def get_router_by_name(self, router_name, suppressprint=suppress_print):
+        return self.get_routers(name=router_name, suppressprint=suppressprint)['data'][0]
 
     # This method gives a groups list filtered by account.
     def get_routers_for_account(self, account_id, suppressprint=suppress_print, **kwargs):
-        call_type = 'Get Routers for Account'
-        geturl = '{0}/routers/?account={1}'.format(self.base_url, str(account_id))
-
-        allowed_params = ['group', 'group__in', 'id', 'id__in', 'ipv4_address', 'ipv4_address__in',
-                          'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
-        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
-        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
-
-        if len(bad_params) > 0:
-            print("INVALID PARAMETERS: ")
-            print(bad_params)
-            print("Skipping call: {}".format(call_type))
-            return
-
-        ncm = self.session.get(geturl, params=params)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.get_routers(account=account_id, suppressprint=suppressprint, **kwargs)
 
     # This method gives a groups list filtered by group.
     def get_routers_for_group(self, group_id, suppressprint=suppress_print, **kwargs):
-        call_type = 'Get Routers for Group'
-        geturl = '{0}/routers/?group={1}'.format(self.base_url, str(group_id))
-
-        allowed_params = ['account', 'account__in', 'id', 'id__in', 'ipv4_address', 'ipv4_address__in',
-                          'mac', 'mac__in', 'name', 'name__in', 'state', 'state__in', 'state_updated_at__lt',
-                          'state_updated_at__gt', 'updated_at__lt', 'updated_at__gt', 'expand', 'limit', 'offset']
-        params = {k: v for (k, v) in kwargs.items() if k in allowed_params}
-        bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
-
-        if len(bad_params) > 0:
-            print("INVALID PARAMETERS: ")
-            print(bad_params)
-            print("Skipping call: {}".format(call_type))
-            return
-
-        ncm = self.session.get(geturl, params=params)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.get_routers(group=group_id, suppressprint=suppressprint, **kwargs)
 
     # This operation renames a router.
-    def rename_router(self, router_id, new_router_name, suppressprint=suppress_print):
+    def rename_router_by_id(self, router_id, new_router_name, suppressprint=suppress_print):
         call_type = 'Rename Router'
         puturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
 
@@ -946,24 +829,13 @@ class NcmClient:
 
     # This operation renames a router by name.
     def rename_router_by_name(self, existing_router_name, new_router_name, suppressprint=suppress_print):
-        call_type = 'Rename Router By Name'
-        router_id = self.get_router_by_name(existing_router_name)['id']
-        print("ROUTER ID: {}".format(router_id))
+        return self.rename_router_by_id(
+            self.get_router_by_name(existing_router_name)['id'], new_router_name, suppressprint=suppressprint)
 
-        puturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
-        putdata = {
-            'name': str(new_router_name)
-        }
-        print("PUTDATA: {}".format(putdata))
-
-        ncm = self.session.put(puturl, data=json.dumps(putdata))
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
-
-    # This operation deletes a router.
-    def delete_router(self, router_id, suppressprint=suppress_print):
+    # This operation deletes a router by ID.
+    def delete_router_by_id(self, router_id, suppressprint=suppress_print):
         call_type = 'Delete Router'
-        posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
+        posturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
 
         ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
@@ -971,13 +843,8 @@ class NcmClient:
 
     # This operation deletes a router by name.
     def delete_router_by_name(self, router_name, suppressprint=suppress_print):
-        call_type = 'Delete Router'
-        router_id = self.get_router_by_name(router_name)['id']
-        posturl = '{0}/routers/{1}'.format(self.base_url, router_id)
-
-        ncm = self.session.delete(posturl)
-        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
-        return result
+        return self.delete_router_by_id(
+            self.get_router_by_name(router_name)['id'], suppressprint=suppressprint)
 
     # Gets the results of a speed test job. The results are updated with the latest known state of the speed tests.
     def get_speed_test(self, speed_test_id, suppressprint=suppress_print):
@@ -1007,7 +874,7 @@ class NcmClient:
     # Deletes a speed test job. Deleting a job aborts it, but any test already started on a router will finish.
     def delete_speed_test(self, speed_test_id, suppressprint=suppress_print):
         call_type = 'Delete Speed Test'
-        posturl = '{0}/routers/{1}'.format(self.base_url, speed_test_id)
+        posturl = '{0}/speed_test/{1}'.format(self.base_url, str(speed_test_id))
 
         ncm = self.session.delete(posturl)
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
@@ -1021,7 +888,6 @@ class NcmClient:
             self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
         response = json.loads(response.content.decode("utf-8"))  # Decode the response and make it a dictionary
         configman_id = response['data'][0]['id']  # get the Configuration Managers ID from response
-
 
         payload = {
             "configuration": [
@@ -1038,6 +904,6 @@ class NcmClient:
         }
 
         ncm = self.session.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
-                             data=json.dumps(payload))  # Patch indie config with new values
+                                 data=json.dumps(payload))  # Patch indie config with new values
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
