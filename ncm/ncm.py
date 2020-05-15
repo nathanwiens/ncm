@@ -106,7 +106,7 @@ class NcmClient:
         :return: A list of accounts based on API Key.
         """
 
-        call_type = 'Get Accounts'
+        call_type = 'Accounts'
         geturl = '{0}/accounts/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'id', 'id__in', 'name',
@@ -325,12 +325,17 @@ class NcmClient:
         return self.__paginated_results(geturl, allowed_params, call_type, suppressprint, **kwargs)
 
     # This operation returns firmwares for a given model ID and version name.
-    def get_firmware_for_product_by_version(self, product_id, firmware_name):
-        for f in self.get_firmwares(version=firmware_name, limit='500')['data']:
+    def get_firmware_for_productid_by_version(self, product_id, firmware_name, suppressprint=suppress_print):
+        for f in self.get_firmwares(version=firmware_name, suppressprint=suppressprint):
             if f['product'] == '{0}/products/{1}/'.format(self.base_url, str(product_id)):
                 return f
         print("ERROR: Invalid Firmware Version")
         return
+
+    # This operation returns firmwares for a given model ID and version name.
+    def get_firmware_for_productname_by_version(self, product_name, firmware_name, suppressprint=suppress_print):
+        product_id = self.get_product_by_name(product_name, suppressprint=suppressprint)['id']
+        return self.get_firmware_for_productid_by_version(product_id, firmware_name, suppressprint=suppressprint)
 
     # This method gives a groups list.
     def get_groups(self, suppressprint=suppress_print, **kwargs):
@@ -377,13 +382,13 @@ class NcmClient:
         call_type = 'Group'
         posturl = '{0}/groups/'.format(self.base_url)
 
-        product = self.get_product_by_name(product_name)
-        firmware = self.get_firmware_for_product_by_version(product['id'], firmware_version)
+        firmware = self.get_firmware_for_productname_by_version(product_name, firmware_version,
+                                                            suppressprint=suppressprint)
 
         postdata = {
             'account': '/api/v1/accounts/{}/'.format(str(parent_account_id)),
             'name': str(group_name),
-            'product': str(self.get_product_by_name(product_name)['resource_url']),
+            'product': str(self.get_product_by_name(product_name, suppressprint=suppressprint)['resource_url']),
             'target_firmware': str(firmware['resource_url'])
         }
 
@@ -433,7 +438,7 @@ class NcmClient:
         posturl = '{0}/groups/{1}/'.format(self.base_url, group_id)
 
         ncm = self.session.delete(posturl)
-        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This operation deletes a group.
@@ -641,12 +646,12 @@ class NcmClient:
         return self.__paginated_results(geturl, allowed_params, call_type, suppressprint, **kwargs)
 
     # This method returns a single product by ID.
-    def get_product_by_id(self, product_id):
-        return self.get_products(id=product_id)[0]
+    def get_product_by_id(self, product_id, suppressprint=suppress_print):
+        return self.get_products(id=product_id, suppressprint=suppressprint)[0]
 
     # This method returns a single product for a given model name.
-    def get_product_by_name(self, product_name):
-        for p in self.get_products():
+    def get_product_by_name(self, product_name, suppressprint=suppress_print):
+        for p in self.get_products(suppressprint=suppressprint):
             if p['name'] == product_name:
                 return p
         print("ERROR: Invalid Product Name")
@@ -662,7 +667,7 @@ class NcmClient:
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
-        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This operation reboots a group.
@@ -675,7 +680,7 @@ class NcmClient:
         }
 
         ncm = self.session.post(posturl, data=json.dumps(postdata))
-        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This method provides a history of device alerts. To receive device alerts, you must enable them
@@ -854,7 +859,7 @@ class NcmClient:
         posturl = '{0}/routers/{1}/'.format(self.base_url, router_id)
 
         ncm = self.session.delete(posturl)
-        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type, suppressprint)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type, suppressprint)
         return result
 
     # This operation deletes a router by name.
