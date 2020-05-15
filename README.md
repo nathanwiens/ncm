@@ -20,7 +20,7 @@ INSTALL AND RUN INSTRUCTIONS
     ```
     import config
     from ncm import ncm
-    n = ncm.NcmClient(X_CP_API_ID, X_CP_API_KEY, X_ECM_API_ID, X_ECM_API_KEY)
+    n = ncm.NcmClient(config.X_CP_API_ID, config.X_CP_API_KEY, config.X_ECM_API_ID, config.X_ECM_API_KEY)
     ```
 
 4. Call functions from the module as needed. For example:
