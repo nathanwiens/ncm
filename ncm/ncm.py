@@ -71,9 +71,7 @@ class NcmClient:
         params = self.__parse_kwargs(kwargs, allowed_params)
         params.update({'limit': '500'})
         results = []
-        page = 0
         while geturl:
-            page = page + 1
             ncm = self.session.get(geturl, params=params)
             if not (200 <= ncm.status_code < 300):
                 break
