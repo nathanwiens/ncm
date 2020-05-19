@@ -164,6 +164,10 @@ class NcmClient:
     def get_account_by_id(self, account_id, suppressprint=suppress_print):
         """
         This method returns a single account with its information specified by id.
+        :param account_id: ID of account to return
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :return:
         """
 
         return self.get_accounts(id=account_id, suppressprint=suppressprint)[0]
@@ -171,6 +175,10 @@ class NcmClient:
     def get_account_by_name(self, account_name, suppressprint=suppress_print):
         """
         This method returns a single account with its information specified by name.
+        :param account_name: Name of account to return
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :return:
         """
         return self.get_accounts(name=account_name, suppressprint=suppressprint)[0]
 
