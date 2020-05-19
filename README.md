@@ -11,10 +11,10 @@ INSTALL AND RUN INSTRUCTIONS
 2. Create a config.py file with your NCM API Keys. API Keys must be passed as a dictionary:
     ```
     api_keys = {
-        'X_CP_API_ID': 'aaaa'
-        'X_CP_API_KEY': 'bbbb'
-        'X_ECM_API_ID': 'cccc'
-        'X_ECM_API_KEY': 'dddd'
+        'X-CP-API-ID': 'aaaa'
+        'X-CP-API-KEY': 'bbbb'
+        'X-ECM-API-ID': 'cccc'
+        'X-ECM-API-KEY': 'dddd'
     }
     ```
 

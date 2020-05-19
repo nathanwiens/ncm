@@ -10,29 +10,26 @@ class NcmClient:
             print("API Keys must be passed as a dictionary")
             exit(1)
 
-        if 'X_CP_API_ID' not in api_keys:
-            print("X_CP_API_ID missing. Please ensure all API Keys are present.")
+        if 'X-CP-API-ID' not in api_keys:
+            print("X-CP-API-ID missing. Please ensure all API Keys are present.")
             exit(1)
 
-        if 'X_CP_API_KEY' not in api_keys:
-            print("X_CP_API_KEY missing. Please ensure all API Keys are present.")
+        if 'X-CP-API-KEY' not in api_keys:
+            print("X-CP-API-KEY missing. Please ensure all API Keys are present.")
             exit(1)
 
-        if 'X_ECM_API_ID' not in api_keys:
-            print("X_ECM_API_ID missing. Please ensure all API Keys are present.")
+        if 'X-ECM-API-ID' not in api_keys:
+            print("X-ECM-API-ID missing. Please ensure all API Keys are present.")
             exit(1)
 
-        if 'X_ECM_API_KEY' not in api_keys:
-            print("X_ECM_API_KEY missing. Please ensure all API Keys are present.")
+        if 'X-ECM-API-KEY' not in api_keys:
+            print("X-ECM-API-KEY missing. Please ensure all API Keys are present.")
             exit(1)
 
         self.session = requests.session()
         self.base_url = 'https://www.cradlepointecm.com/api/v2'
+        self.session.headers.update(api_keys)
         self.session.headers.update({
-            'X-CP-API-ID': api_keys['X_CP_API_ID'],
-            'X-CP-API-KEY': api_keys['X_CP_API_KEY'],
-            'X-ECM-API-ID': api_keys['X_ECM_API_ID'],
-            'X-ECM-API-KEY': api_keys['X_ECM_API_KEY'],
             'Content-Type': 'application/json'
         })
 
