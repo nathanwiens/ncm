@@ -1,11 +1,36 @@
-import requests
+from requests import Session
+from requests.adapters import HTTPAdapter
+from http import HTTPStatus
+from urllib3.util.retry import Retry
+import os
 import json
 
 suppress_print = False
 
 
 class NcmClient:
-    def __init__(self, api_keys):
+    def __init__(self,
+                 api_keys,
+                 retries=5,
+                 retry_backoff_factor=2,
+                 retry_on=[
+                     HTTPStatus.REQUEST_TIMEOUT,
+                     HTTPStatus.GATEWAY_TIMEOUT,
+                     HTTPStatus.SERVICE_UNAVAILABLE
+                 ],
+                 base_url=os.environ.get(
+                     'CP_BASE_URL', 'https://www.cradlepointecm.com/api/v2')
+                 ):
+        """
+        Constructor. Sets up and opens request session.
+        :param api_keys: Dictionary of API credentials. Required.
+        :type api_keys: dict
+        :param retries: number of retries on failure. Optional.
+        :param retry_backoff_factor: backoff time multiplier for retries. Optional.
+        :param retry_on: types of errors on which automatic retry will occur. Optional.
+        :param base_url: # base url for calls. Configurable for testing. Optional.
+        """
+
         if type(api_keys) is not dict:
             print("API Keys must be passed as a dictionary")
             exit(1)
@@ -26,8 +51,16 @@ class NcmClient:
             print("X-ECM-API-KEY missing. Please ensure all API Keys are present.")
             exit(1)
 
-        self.session = requests.session()
-        self.base_url = 'https://www.cradlepointecm.com/api/v2'
+        self.base_url = base_url
+        self.session = Session()
+        self.adapter = HTTPAdapter(
+            max_retries=Retry(total=retries,
+                              backoff_factor=retry_backoff_factor,
+                              status_forcelist=retry_on,
+                              redirect=3
+                              )
+        )
+        self.session.mount(self.base_url, self.adapter)
         self.session.headers.update(api_keys)
         self.session.headers.update({
             'Content-Type': 'application/json'
@@ -97,8 +130,18 @@ class NcmClient:
 
         results = []
         __in_keys = 0
+        limit = int(params['limit'])
 
         if params is not None:
+            if 'order_by' in params.keys():
+                print("ORDER BY")
+                if type(params['order_by']) is list:
+                    print("LIST")
+                    params['order_by'] = ','.join(str(x) for x in params['order_by'])
+                elif type(params['order_by']) is not list and type(params['order_by']) is not str:
+                    print("INVALID ORDER-BY PARAMETER. MUST BE LIST OR STRING.")
+                    params.pop('order_by')
+
             for key, val in params.items():
                 if '__in' in key:
                     __in_keys += 1
@@ -106,7 +149,8 @@ class NcmClient:
                     for chunk in chunks:
                         params.update({key: chunk})
                         url = geturl
-                        while url:
+                        while url and (len(results) <= limit):
+                            print(len(results))
                             ncm = self.session.get(url, params=params)
                             if not (200 <= ncm.status_code < 300):
                                 break
@@ -117,7 +161,7 @@ class NcmClient:
 
         if __in_keys == 0:
             url = geturl
-            while url:
+            while url and (len(results) <= limit):
                 ncm = self.session.get(url, params=params)
                 if not (200 <= ncm.status_code < 300):
                     break
@@ -304,7 +348,7 @@ class NcmClient:
         allowed_params = ['account', 'created_at__exact', 'created_at__lt', 'created_at__lte', 'created_at__gt',
                           'created_at__gte', 'action__timestamp__exact', 'action__timestamp__lt',
                           'action__timestamp__lte', 'action__timestamp__gt', 'action__timestamp__gte', 'actor__id',
-                          'object__id', 'action__id__exact', 'actor__type', 'action__type', 'object__type',
+                          'object__id', 'action__id__exact', 'actor__type', 'action__type', 'object__type', 'order_by',
                           'limit']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
@@ -322,7 +366,7 @@ class NcmClient:
         geturl = '{0}/alerts/'.format(self.base_url)
 
         allowed_params = ['account', 'created_at', 'created_at_timeuuid', 'detected_at', 'friendly_info', 'info',
-                          'router', 'type', 'limit', 'offset']
+                          'router', 'type', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
@@ -420,7 +464,7 @@ class NcmClient:
         geturl = '{0}/device_apps/'.format(self.base_url)
 
         allowed_params = ['account', 'account__in', 'name', 'name__in', 'id', 'id__in', 'uuid', 'uuid__in',
-                          'expand', 'limit', 'offset']
+                          'expand', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
@@ -436,7 +480,7 @@ class NcmClient:
         call_type = 'Failovers'
         geturl = '{0}/failovers/'.format(self.base_url)
 
-        allowed_params = ['account_id', 'group_id', 'router_id', 'started_at', 'ended_at', 'limit', 'offset']
+        allowed_params = ['account_id', 'group_id', 'router_id', 'started_at', 'ended_at', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
@@ -641,7 +685,7 @@ class NcmClient:
         call_type = 'Historical Locations'
         geturl = '{0}/historical_locations/?router={1}'.format(self.base_url, router_id)
 
-        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'limit', 'offset']
+        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
@@ -981,7 +1025,7 @@ class NcmClient:
         allowed_params = ['account', 'account__in', 'group', 'group__in', 'id', 'id__in',
                           'ipv4_address', 'ipv4_address__in', 'mac', 'mac__in', 'name', 'name__in', 'state',
                           'state__in', 'state_updated_at__lt', 'state_updated_at__gt', 'updated_at__lt',
-                          'updated_at__gt', 'expand', 'limit', 'offset']
+                          'updated_at__gt', 'expand', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
