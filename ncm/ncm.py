@@ -130,27 +130,30 @@ class NcmClient:
 
         results = []
         __in_keys = 0
+        if params['limit'] == 'all':
+            params['limit'] = 1000000
         limit = int(params['limit'])
 
         if params is not None:
+            # Ensures that order_by is passed as a comma separated string
             if 'order_by' in params.keys():
-                print("ORDER BY")
                 if type(params['order_by']) is list:
-                    print("LIST")
                     params['order_by'] = ','.join(str(x) for x in params['order_by'])
                 elif type(params['order_by']) is not list and type(params['order_by']) is not str:
                     print("INVALID ORDER-BY PARAMETER. MUST BE LIST OR STRING.")
                     params.pop('order_by')
 
             for key, val in params.items():
+                # Handles multiple filters using __in fields.
                 if '__in' in key:
                     __in_keys += 1
+                    # Cradlepoint limit of 100 values. If more than 100 values, break into chunks
                     chunks = self.__chunk_param(val, suppressprint=suppressprint)
+                    # For each chunk, get the full results list and filter by __in parameter
                     for chunk in chunks:
                         params.update({key: chunk})
                         url = geturl
                         while url and (len(results) <= limit):
-                            print(len(results))
                             ncm = self.session.get(url, params=params)
                             if not (200 <= ncm.status_code < 300):
                                 break
