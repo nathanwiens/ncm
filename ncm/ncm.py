@@ -2,10 +2,22 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from http import HTTPStatus
 from urllib3.util.retry import Retry
+from datetime import datetime, timedelta
 import os
 import json
 
 suppress_print = False
+
+
+def __isjson(myjson):
+    """
+    Checks if a string is a valid json object
+    """
+    try:
+        json_object = json.loads(myjson)
+    except ValueError:
+        return False
+    return True
 
 
 class NcmClient:
@@ -65,16 +77,6 @@ class NcmClient:
         self.session.headers.update({
             'Content-Type': 'application/json'
         })
-
-    def __isjson(self, myjson):
-        """
-        Checks if a string is a valid json object
-        """
-        try:
-            json_object = json.loads(myjson)
-        except ValueError:
-            return False
-        return True
 
     def __returnhandler(self, statuscode, returntext, objtype, suppressprint):
         """
@@ -973,6 +975,61 @@ class NcmClient:
                           'created_at_timeuuid__in', 'created_at_timeuuid__gt', 'created_at_timeuuid__gte',
                           'created_at_timeuuid__lt', 'created_at_timeuuid__lte', 'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
+
+        return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
+
+    def get_router_logs_last_24hrs(self, router_id, tzoffset_hrs=0, suppressprint=suppress_print):
+        """
+        This method provides a history of device events. To receive device logs, you must enable them on the
+        Group settings form. Enabling device logs can significantly increase the ECM network traffic from the
+        device to the server depending on how quickly the device is generating events.
+        :param router_id: ID of router from which to grab logs.
+        :param tzoffset_hrs: Offset from UTC for local timezone
+        :type tzoffset_hrs: int
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+        d = datetime.utcnow() + timedelta(hours=tzoffset_hrs)
+        end = d.strftime("%Y-%m-%dT%H:%M:%S")
+        print(end)
+        start = (d - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+        print(start)
+
+        call_type = 'Router Logs'
+        geturl = '{0}/router_logs/?router={1}'.format(self.base_url, router_id)
+
+        params = {'created_at__lt': end, 'created_at__gt': start, 'order_by': 'created_at_timeuuid', 'limit': '500'}
+
+        return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
+
+    def get_router_logs_for_date(self, router_id, date, tzoffset_hrs=0, suppressprint=suppress_print):
+        """
+        This method provides a history of device events. To receive device logs, you must enable them on the
+        Group settings form. Enabling device logs can significantly increase the ECM network traffic from the
+        device to the server depending on how quickly the device is generating events.
+        :param router_id: ID of router from which to grab logs.
+        :param date: Date to filter logs. Must be in format "YYYY-mm-dd"
+        :type date: str
+        :param tzoffset_hrs: Offset from UTC for local timezone
+        :type tzoffset_hrs: int
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+
+        d = datetime.strptime(date, '%Y-%m-%d') + timedelta(hours=tzoffset_hrs)
+        start = d.strftime("%Y-%m-%dT%H:%M:%S")
+        print(start)
+        end = (d + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+        print(end)
+
+        call_type = 'Router Logs'
+        geturl = '{0}/router_logs/?router={1}'.format(self.base_url, router_id)
+
+        params = {'created_at__lt': end, 'created_at__gt': start, 'order_by': 'created_at_timeuuid', 'limit': '500'}
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
 
