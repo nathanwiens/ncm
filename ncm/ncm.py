@@ -971,9 +971,7 @@ class NcmClient:
         """
         d = datetime.utcnow() + timedelta(hours=tzoffset_hrs)
         end = d.strftime("%Y-%m-%dT%H:%M:%S")
-        print(end)
         start = (d - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
-        print(start)
 
         call_type = 'Router Alerts'
         geturl = '{0}/router_alerts/'.format(self.base_url)
@@ -1005,9 +1003,7 @@ class NcmClient:
 
         d = datetime.strptime(date, '%Y-%m-%d') + timedelta(hours=tzoffset_hrs)
         start = d.strftime("%Y-%m-%dT%H:%M:%S")
-        print(start)
         end = (d + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
-        print(end)
 
         call_type = 'Router Alerts'
         geturl = '{0}/router_alerts/'.format(self.base_url)
@@ -1058,9 +1054,7 @@ class NcmClient:
         """
         d = datetime.utcnow() + timedelta(hours=tzoffset_hrs)
         end = d.strftime("%Y-%m-%dT%H:%M:%S")
-        print(end)
         start = (d - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
-        print(start)
 
         call_type = 'Router Logs'
         geturl = '{0}/router_logs/?router={1}'.format(self.base_url, router_id)
@@ -1087,9 +1081,7 @@ class NcmClient:
 
         d = datetime.strptime(date, '%Y-%m-%d') + timedelta(hours=tzoffset_hrs)
         start = d.strftime("%Y-%m-%dT%H:%M:%S")
-        print(start)
         end = (d + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
-        print(end)
 
         call_type = 'Router Logs'
         geturl = '{0}/router_logs/?router={1}'.format(self.base_url, router_id)
