@@ -949,11 +949,76 @@ class NcmClient:
         call_type = 'Router Alerts'
         geturl = '{0}/router_alerts/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+        allowed_params = ['router', 'router__in', 'created_at', 'created_at__lt', 'created_at__gt',
                           'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
                           'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
                           'order_by', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
+
+        return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
+
+    def get_router_alerts_last_24hrs(self, tzoffset_hrs=0, suppressprint=suppress_print, **kwargs):
+        """
+        This method provides a history of device alerts. To receive device alerts, you must enable them
+        through the ECM UI: Alerts -> Settings. The info section of the alert is firmware dependent and
+        may change between firmware releases.
+        :param tzoffset_hrs: Offset from UTC for local timezone
+        :type tzoffset_hrs: int
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+        d = datetime.utcnow() + timedelta(hours=tzoffset_hrs)
+        end = d.strftime("%Y-%m-%dT%H:%M:%S")
+        print(end)
+        start = (d - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+        print(start)
+
+        call_type = 'Router Alerts'
+        geturl = '{0}/router_alerts/'.format(self.base_url)
+
+        allowed_params = ['router', 'router__in']
+        params = self.__parse_kwargs(kwargs, allowed_params)
+
+        params.update({'created_at__lt': end,
+                       'created_at__gt': start,
+                       'order_by': 'created_at_timeuuid',
+                       'limit': '500'})
+
+        return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
+
+    def get_router_alerts_for_date(self, date, tzoffset_hrs=0, suppressprint=suppress_print, **kwargs):
+        """
+        This method provides a history of device alerts. To receive device alerts, you must enable them
+        through the ECM UI: Alerts -> Settings. The info section of the alert is firmware dependent and
+        may change between firmware releases.
+        :param date: Date to filter logs. Must be in format "YYYY-mm-dd"
+        :type date: str
+        :param tzoffset_hrs: Offset from UTC for local timezone
+        :type tzoffset_hrs: int
+        :param suppressprint: False by default. Set to true if HTTP Request results should not be printed.
+        :type suppressprint: bool
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+
+        d = datetime.strptime(date, '%Y-%m-%d') + timedelta(hours=tzoffset_hrs)
+        start = d.strftime("%Y-%m-%dT%H:%M:%S")
+        print(start)
+        end = (d + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+        print(end)
+
+        call_type = 'Router Alerts'
+        geturl = '{0}/router_alerts/'.format(self.base_url)
+
+        allowed_params = ['router', 'router__in']
+        params = self.__parse_kwargs(kwargs, allowed_params)
+
+        params.update({'created_at__lt': end,
+                       'created_at__gt': start,
+                       'order_by': 'created_at_timeuuid',
+                       'limit': '500'})
 
         return self.__get_json(geturl, call_type, params=params, suppressprint=suppressprint)
 
