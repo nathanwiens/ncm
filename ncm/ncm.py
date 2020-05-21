@@ -389,7 +389,7 @@ class NcmClient:
         call_type = 'Configuration Managers'
         geturl = '{0}/configuration_managers/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router_in', 'synched',
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router__in', 'synched',
                           'suspended', 'expand', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
@@ -1101,7 +1101,7 @@ class NcmClient:
         call_type = 'Router State Samples'
         geturl = '{0}/router_state_samples/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+        allowed_params = ['router', 'router__in', 'created_at', 'created_at__lt', 'created_at__gt',
                           'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
                           'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
                           'order_by', 'limit', 'offset']
@@ -1120,7 +1120,7 @@ class NcmClient:
         call_type = 'Router Stream Usage Samples'
         geturl = '{0}/router_stream_usage_samples/'.format(self.base_url)
 
-        allowed_params = ['router', 'router_in', 'created_at', 'created_at__lt', 'created_at__gt',
+        allowed_params = ['router', 'router__in', 'created_at', 'created_at__lt', 'created_at__gt',
                           'created_at_timeuuid', 'created_at_timeuuid__in', 'created_at_timeuuid__gt',
                           'created_at_timeuuid__gte', 'created_at_timeuuid__lt', 'created_at_timeuuid__lte',
                           'order_by', 'limit', 'offset']
