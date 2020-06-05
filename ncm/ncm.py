@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import os
 import json
 
+# Print HTTP Request results by default.
 log_events = True
 
 
@@ -79,32 +80,32 @@ class NcmClient:
         """
 
         if str(statuscode) == '200':
-            if logEvents is True:
+            if logEvents:
                 print('{0} Operation Successful\n'.format(str(objtype)))
             return None
         elif str(statuscode) == '201':
-            if logEvents is True:
+            if logEvents:
                 print('{0} Added Successfully\n'.format(str(objtype)))
             return None
         elif str(statuscode) == '204':
-            if logEvents is True:
+            if logEvents:
                 print('{0} Deleted Successfully\n'.format(str(objtype)))
             return None
         elif str(statuscode) == '400':
-            if logEvents is True:
+            if logEvents:
                 print('Bad Request\n')
             return None
         elif str(statuscode) == '401':
-            if logEvents is True:
-                print('Unauthorized Access')
+            if logEvents:
+                print('Unauthorized Access\n')
             return returntext
         elif str(statuscode) == '404':
-            if logEvents is True:
-                print('Resource Not Found')
+            if logEvents:
+                print('Resource Not Found\n')
             return returntext
         elif str(statuscode) == '500':
-            if logEvents is True:
-                print('HTTP 500 - Server Error')
+            if logEvents:
+                print('HTTP 500 - Server Error\n')
             return returntext
         else:
             print('HTTP Status Code: {0} - No returned data\n'.format(str(statuscode)))
