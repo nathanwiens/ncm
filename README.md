@@ -5,10 +5,10 @@ INSTALL AND RUN INSTRUCTIONS
 
 1. Install the ncm pip package:
     ```
-    pip3 install -i https://test.pypi.org/simple/ ncm
+    pip3 install ncm
     ```
 
-2. Create a config.py file with your NCM API Keys. API Keys must be passed as a dictionary:
+2. Set NCM API Keys. API Keys must be passed as a dictionary:
     ```
     api_keys = {
         'X-CP-API-ID': 'aaaa',
@@ -18,11 +18,10 @@ INSTALL AND RUN INSTRUCTIONS
     }
     ```
 
-3. Create a Python script, import the module, and create an instance of the NcmClient object:
+3. Import the module and create an instance of the NcmClient object:
     ```
-    import config
     from ncm import ncm
-    n = ncm.NcmClient(config.api_keys)
+    n = ncm.NcmClient(api_keys)
     ```
 
 4. Call functions from the module as needed. For example:
