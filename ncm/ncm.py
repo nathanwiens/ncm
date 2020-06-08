@@ -169,7 +169,7 @@ class NcmClient:
 
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
         if len(bad_params) > 0:
-            raise ValueError("INVALID PARAMETERS: {}".format(bad_params))
+            raise ValueError("Invalid parameters: {}".format(bad_params))
         return params
 
     def __chunk_param(self, param):
@@ -480,7 +480,7 @@ class NcmClient:
         for f in self.get_firmwares(version=firmware_name):
             if f['product'] == '{0}/products/{1}/'.format(self.base_url, str(product_id)):
                 return f
-        raise ValueError("ERROR: Invalid Firmware Version")
+        raise ValueError("Invalid Firmware Version")
         return
 
     def get_firmware_for_productname_by_version(self, product_name, firmware_name):
@@ -830,7 +830,7 @@ class NcmClient:
         for p in self.get_products():
             if p['name'] == product_name:
                 return p
-        raise ValueError("ERROR: Invalid Product Name")
+        raise ValueError("Invalid Product Name")
         return
 
     def reboot_device(self, router_id):
