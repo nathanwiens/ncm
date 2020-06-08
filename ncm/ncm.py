@@ -138,7 +138,7 @@ class NcmClient:
                     for chunk in chunks:
                         params.update({key: chunk})
                         url = geturl
-                        while url and (len(results) <= limit):
+                        while url and (len(results) < limit):
                             ncm = self.session.get(url, params=params)
                             if not (200 <= ncm.status_code < 300):
                                 break
@@ -149,7 +149,7 @@ class NcmClient:
 
         if __in_keys == 0:
             url = geturl
-            while url and (len(results) <= limit):
+            while url and (len(results) < limit):
                 ncm = self.session.get(url, params=params)
                 if not (200 <= ncm.status_code < 300):
                     break
