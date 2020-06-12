@@ -136,7 +136,8 @@ class NcmClient:
                     chunks = self.__chunk_param(val)
                     # For each chunk, get the full results list and filter by __in parameter
                     for chunk in chunks:
-                        params.update({key: chunk})
+                        chunkstr = ','.join(map(str, chunk))
+                        params.update({key: chunkstr})
                         url = geturl
                         while url and (len(results) < limit):
                             ncm = self.session.get(url, params=params)
