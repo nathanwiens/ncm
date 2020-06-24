@@ -136,6 +136,7 @@ class NcmClient:
                     chunks = self.__chunk_param(val)
                     # For each chunk, get the full results list and filter by __in parameter
                     for chunk in chunks:
+                        # Handles a list of int or list of str
                         chunkstr = ','.join(map(str, chunk))
                         params.update({key: chunkstr})
                         url = geturl
@@ -193,8 +194,6 @@ class NcmClient:
     def get_accounts(self, **kwargs):
         """
         Returns accounts with details.
-
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return: A list of accounts based on API Key.
         """
@@ -212,7 +211,6 @@ class NcmClient:
         """
         This method returns a single account with its information specified by id.
         :param account_id: ID of account to return
-
         :return:
         """
 
@@ -222,7 +220,6 @@ class NcmClient:
         """
         This method returns a single account with its information specified by name.
         :param account_name: Name of account to return
-
         :return:
         """
         return self.get_accounts(name=account_name)[0]
@@ -232,7 +229,6 @@ class NcmClient:
         This operation creates a new subaccount.
         :param parent_account_id: ID of parent account.
         :param subaccount_name: Name for new subaccount.
-
         :return:
         """
         call_type = 'Subaccount'
@@ -252,7 +248,6 @@ class NcmClient:
         This operation creates a new subaccount.
         :param parent_account_name: Name of parent account.
         :param subaccount_name: Name for new subaccount.
-
         :return:
         """
         return self.create_subaccount_by_parent_id(self.get_account_by_name(
@@ -263,7 +258,6 @@ class NcmClient:
         This operation renames a subaccount
         :param subaccount_id: ID of subaccount to rename
         :param new_subaccount_name: New name for subaccount
-
         :return:
         """
         call_type = 'Subaccount'
@@ -282,7 +276,6 @@ class NcmClient:
         This operation renames a subaccount
         :param subaccount_name: Name of subaccount to rename
         :param new_subaccount_name: New name for subaccount
-
         :return:
         """
         return self.rename_subaccount_by_id(self.get_account_by_name(
@@ -292,7 +285,6 @@ class NcmClient:
         """
         This operation deletes a subaccount
         :param subaccount_id: ID of subaccount to delete
-
         :return:
         """
         call_type = 'Subccount'
@@ -306,7 +298,6 @@ class NcmClient:
         """
         This operation deletes a subaccount
         :param subaccount_name: Name of subaccount to delete
-
         :return:
         """
         return self.delete_subaccount_by_id(self.get_account_by_name(
@@ -315,7 +306,6 @@ class NcmClient:
     def get_activity_logs(self, **kwargs):
         """
         This method returns NCM activity log information.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -334,7 +324,6 @@ class NcmClient:
     def get_alerts(self, **kwargs):
         """
         This method gives alert information with associated id.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -347,39 +336,81 @@ class NcmClient:
 
         return self.__get_json(geturl, call_type, params=params)
 
-
     def get_configuration_managers(self, **kwargs):
         """
         A configuration manager is an abstract resource for controlling and monitoring config sync on a single device.
         Each device has its own corresponding configuration manager.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
         call_type = 'Configuration Managers'
         geturl = '{0}/configuration_managers/'.format(self.base_url)
 
-        allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router__in', 'synched',
+        allowed_params = ['account', 'account__in', 'fields', 'id', 'id__in', 'router', 'router__in', 'synched',
                           'suspended', 'expand', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params)
 
-    # This method updates an configuration_managers for associated id
+    def get_configuration_manager_id(self, router_id, **kwargs):
+        """
+        A configuration manager is an abstract resource for controlling and monitoring config sync on a single device.
+        Each device has its own corresponding configuration manager.
+        :param router_id: Router ID to query
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+        call_type = 'Configuration Managers'
+        geturl = '{0}/configuration_managers/?router.id={1}&fields=id'.format(self.base_url, router_id)
+
+        allowed_params = ['account', 'account__in', 'id', 'id__in', 'router', 'router__in', 'synched',
+                          'suspended', 'expand', 'limit', 'offset']
+        params = self.__parse_kwargs(kwargs, allowed_params)
+
+        return self.__get_json(geturl, call_type, params=params)[0]['id']
+
     def update_configuration_managers(self, configman_id, configman_json):
+        """
+        This method updates an configuration_managers for associated id.
+        :param configman_id: ID of the Configuration Manager to modify
+        :param configman_json: JSON of the "configuration" field of the configuration manager
+        :return:
+        """
         call_type = 'Configuration Manager'
         puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, configman_id)
 
-        payload = str(configman_json)
+        ncm = self.session.put(puturl, json=configman_json)
+        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
+        return result
 
-        ncm = self.session.put(puturl, data=json.dumps(payload))
+    def copy_router_configuration(self, src_router_id, dst_router_id):
+        """
+        Copies the Configuration Manager config of one router to another.
+        This function will not copy any passwords as they are not stored in clear text.
+        :param src_router_id: Router ID to copy from
+        :param dst_router_id: Router ID to copy to
+        :return: Should return HTTP Status Code 202 if successful
+        """
+        call_type = 'Configuration Manager'
+        """Get source router existing configuration"""
+        src_config = self.get_configuration_managers(router=src_router_id, fields='configuration')[0]
+
+        """Strip passwords which aren't stored in plain text"""
+        src_config = json.dumps(src_config).replace(', "wpapsk": "*"', '').replace('"wpapsk": "*"', '')\
+            .replace(', "password": "*"', '').replace('"password": "*"', '')
+
+        """Get destination router Configuration Manager ID"""
+        dst_configman_id = self.get_configuration_managers(router=dst_router_id)[0]['id']
+
+        puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, dst_configman_id)
+
+        ncm = self.session.put(puturl, data=src_config)
         result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
         return result
 
     def get_device_app_bindings(self, **kwargs):
         """
         This method gives device app binding information for all device app bindings associated with the account.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -395,7 +426,6 @@ class NcmClient:
     def get_device_app_states(self, **kwargs):
         """
         This method gives device app state information for all device app states associated with the account.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -411,7 +441,6 @@ class NcmClient:
     def get_device_app_versions(self, **kwargs):
         """
         This method gives device app version information for all device app versions associated with the account.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -427,7 +456,6 @@ class NcmClient:
     def get_device_apps(self, **kwargs):
         """
         This method gives device app information for all device apps associated with the account.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -443,7 +471,6 @@ class NcmClient:
     def get_failovers(self, **kwargs):
         """
         This method returns a list of Failover Events for a device, group, or account.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -458,7 +485,6 @@ class NcmClient:
     def get_firmwares(self, **kwargs):
         """
         This operation gives the list of device firmwares.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -475,21 +501,18 @@ class NcmClient:
         This operation returns firmwares for a given model ID and version name.
         :param product_id: The ID of the product (e.g. 46)
         :param firmware_name: The Firmware Version (e.g. 7.2.0)
-
         :return:
         """
         for f in self.get_firmwares(version=firmware_name):
             if f['product'] == '{0}/products/{1}/'.format(self.base_url, str(product_id)):
                 return f
         raise ValueError("Invalid Firmware Version")
-        return
 
     def get_firmware_for_productname_by_version(self, product_name, firmware_name):
         """
         This operation returns firmwares for a given model name and version name.
         :param product_name: The Name of the product (e.g. IBR200)
         :param firmware_name: The Firmware Version (e.g. 7.2.0)
-
         :return:
         """
         product_id = self.get_product_by_name(product_name)['id']
@@ -498,7 +521,6 @@ class NcmClient:
     def get_groups(self, **kwargs):
         """
         This method gives a groups list.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -514,7 +536,6 @@ class NcmClient:
         """
         This method returns a single group.
         :param group_id: The ID of the group.
-
         :return:
         """
         return self.get_groups(id=group_id)[0]
@@ -523,21 +544,18 @@ class NcmClient:
         """
         This method returns a single group.
         :param group_name: The Name of the group.
-
         :return:
         """
         return self.get_groups(name=group_name)[0]
 
     def create_group_by_parent_id(self, parent_account_id, group_name, product_name, firmware_version):
-        """This operation creates a new group.
-
+        """
+        This operation creates a new group.
         :param parent_account_id: ID of parent account
         :param group_name: Name for new group
         :param product_name: Product model (e.g. IBR200)
         :param firmware_version: Firmware version for group (e.g. 7.2.0)
-
         :return:
-
         Example: n.create_group_by_parent_id('123456', 'My New Group', 'IBR200', '7.2.0')
         """
 
@@ -560,13 +578,11 @@ class NcmClient:
     def create_group_by_parent_name(self, parent_account_name, group_name, product_name, firmware_version):
         """
         This operation creates a new group.
-
         :param parent_account_name: Name of parent account
         :param group_name: Name for new group
         :param product_name: Product model (e.g. IBR200)
         :param firmware_version: Firmware version for group (e.g. 7.2.0)
         :return:
-
         Example: n.create_group_by_parent_name('Parent Account', 'My New Group', 'IBR200', '7.2.0')
         """
 
@@ -579,7 +595,6 @@ class NcmClient:
         This operation renames a group by specifying ID.
         :param group_id: ID of the group to rename.
         :param new_group_name: New name for the group.
-
         :return:
         """
         call_type = 'Group'
@@ -598,7 +613,6 @@ class NcmClient:
         This operation renames a group by specifying name.
         :param existing_group_name: Name of the group to rename
         :param new_group_name: New name for the group.
-
         :return:
         """
         return self.rename_group_by_id(
@@ -608,7 +622,6 @@ class NcmClient:
         """
         This operation deletes a group by specifying ID.
         :param group_id: ID of the group to delete
-
         :return:
         """
         call_type = 'Group'
@@ -622,7 +635,6 @@ class NcmClient:
         """
         This operation deletes a group by specifying Name.
         :param group_name: Name of the group to delete
-
         :return:
         """
         return self.delete_group_by_id(
@@ -632,7 +644,6 @@ class NcmClient:
         """
         This method returns a list of locations visited by a device.
         :param router_id: ID of the router
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -647,7 +658,6 @@ class NcmClient:
     def get_locations(self, **kwargs):
         """
         This method gives a list of locations.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -662,7 +672,6 @@ class NcmClient:
     def get_net_device_health(self, **kwargs):
         """
         This operation gets cellular heath scores, by device.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -679,7 +688,6 @@ class NcmClient:
         This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
         net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
         many net_devices at once.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -696,7 +704,6 @@ class NcmClient:
         This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
         net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
         many net_devices at once.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -714,7 +721,6 @@ class NcmClient:
     def get_net_device_usage_samples(self, **kwargs):
         """
         This method provides information about the net device's overall network traffic.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -732,7 +738,6 @@ class NcmClient:
     def get_net_devices(self, **kwargs):
         """
         This method gives a list of net devices.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -751,7 +756,6 @@ class NcmClient:
         """
         This method gives a list of net devices for a given router.
         :param router_id: ID of the router
-
         :return:
         """
         return self.get_net_devices(router=router_id)
@@ -761,7 +765,6 @@ class NcmClient:
         This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
         net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
         many net_devices at once. Returns data only for WAN interfaces.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -776,7 +779,6 @@ class NcmClient:
         This endpoint is supplied to allow easy access to the latest signal and usage data reported by an account’s
         net_devices without querying the historical raw sample tables, which are not optimized for a query spanning
         many net_devices at once. Returns data only for Modem interfaces.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -791,7 +793,6 @@ class NcmClient:
         This method gives a list of net devices for a given router, filtered by mode (lan/wan).
         :param router_id: ID of router
         :param mode: lan/wan
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -800,7 +801,6 @@ class NcmClient:
     def get_products(self, **kwargs):
         """
         This method gives a list of product information.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -816,7 +816,6 @@ class NcmClient:
         """
         This method returns a single product by ID.
         :param product_id: ID of product (e.g. 46)
-
         :return:
         """
         return self.get_products(id=product_id)[0]
@@ -825,20 +824,17 @@ class NcmClient:
         """
         This method returns a single product for a given model name.
         :param product_name: Name of product (e.g. IBR200)
-
         :return:
         """
         for p in self.get_products():
             if p['name'] == product_name:
                 return p
         raise ValueError("Invalid Product Name")
-        return
 
     def reboot_device(self, router_id):
         """
         This operation reboots a device.
         :param router_id: ID of router to reboot
-
         :return:
         """
         call_type = 'Reboot Device'
@@ -856,7 +852,6 @@ class NcmClient:
         """
         This operation reboots all routers in a group.
         :param group_id: ID of group to reboot
-
         :return:
         """
         call_type = 'Reboot Group'
@@ -875,7 +870,6 @@ class NcmClient:
         This method provides a history of device alerts. To receive device alerts, you must enable them
         through the ECM UI: Alerts -> Settings. The info section of the alert is firmware dependent and
         may change between firmware releases.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -897,7 +891,6 @@ class NcmClient:
         may change between firmware releases.
         :param tzoffset_hrs: Offset from UTC for local timezone
         :type tzoffset_hrs: int
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -927,7 +920,6 @@ class NcmClient:
         :type date: str
         :param tzoffset_hrs: Offset from UTC for local timezone
         :type tzoffset_hrs: int
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -955,7 +947,6 @@ class NcmClient:
         Group settings form. Enabling device logs can significantly increase the ECM network traffic from the
         device to the server depending on how quickly the device is generating events.
         :param router_id: ID of router from which to grab logs.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -977,8 +968,6 @@ class NcmClient:
         :param router_id: ID of router from which to grab logs.
         :param tzoffset_hrs: Offset from UTC for local timezone
         :type tzoffset_hrs: int
-
-        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
         d = datetime.utcnow() + timedelta(hours=tzoffset_hrs)
@@ -1002,8 +991,6 @@ class NcmClient:
         :type date: str
         :param tzoffset_hrs: Offset from UTC for local timezone
         :type tzoffset_hrs: int
-
-        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
 
@@ -1021,7 +1008,6 @@ class NcmClient:
     def get_router_state_samples(self, **kwargs):
         """
         This method provides information about the connection state of the device with the ECM server.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1039,7 +1025,6 @@ class NcmClient:
     def get_router_stream_usage_samples(self, **kwargs):
         """
         This method provides information about the connection state of the device with the ECM server.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1057,7 +1042,6 @@ class NcmClient:
     def get_routers(self, **kwargs):
         """
         This method gives device information with associated id.
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1076,7 +1060,6 @@ class NcmClient:
         """
         This method gives device information for a given router ID.
         :param router_id: ID of router
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1086,7 +1069,6 @@ class NcmClient:
         """
         This method gives device information for a given router name.
         :param router_name: Name of router
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1096,7 +1078,6 @@ class NcmClient:
         """
         This method gives a groups list filtered by account.
         :param account_id: Account ID to filter
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1106,7 +1087,6 @@ class NcmClient:
         """
         This method gives a groups list filtered by group.
         :param group_id: Group ID to filter
-
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return:
         """
@@ -1117,7 +1097,6 @@ class NcmClient:
         This operation renames a router by ID.
         :param router_id: ID of router to rename
         :param new_router_name: New name for router
-
         :return:
         """
         call_type = 'Router'
@@ -1136,7 +1115,6 @@ class NcmClient:
         This operation renames a router by name.
         :param existing_router_name: Name of router to rename
         :param new_router_name: New name for router
-
         :return:
         """
         return self.rename_router_by_id(
@@ -1146,7 +1124,6 @@ class NcmClient:
         """
         This operation deletes a router by ID.
         :param router_id: ID of router to delete.
-
         :return:
         """
         call_type = 'Router'
@@ -1160,7 +1137,6 @@ class NcmClient:
         """
         This operation deletes a router by name.
         :param router_name: Name of router to delete
-
         :return:
         """
         return self.delete_router_by_id(
@@ -1170,7 +1146,6 @@ class NcmClient:
         """
         Gets the results of a speed test job. The results are updated with the latest known state of the speed tests.
         :param speed_test_id: ID ot Speed Test
-
         :return:
         """
         call_type = 'Speed Test'
@@ -1186,7 +1161,6 @@ class NcmClient:
         """
         Deletes a speed test job. Deleting a job aborts it, but any test already started on a router will finish.
         :param speed_test_id: Speed Test ID to delete
-
         :return:
         """
         call_type = 'Speed Test'
@@ -1201,7 +1175,6 @@ class NcmClient:
         This method sets the IP Address for the Primary LAN for a given router id.
         :param router_id: ID of router to update
         :param lan_ip: LAN IP Address. (e.g. 192.168.1.1)
-
         :return:
         """
         call_type = 'LAN IP Address'
