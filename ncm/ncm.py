@@ -42,7 +42,6 @@ class NcmClient:
         :param base_url: # base url for calls. Configurable for testing. Optional.
         """
         self.logEvents = logEvents
-
         self.base_url = base_url
         self.session = Session()
         self.adapter = HTTPAdapter(
