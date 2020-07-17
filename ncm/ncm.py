@@ -20,7 +20,7 @@ def __isjson(myjson):
 
 class NcmClient:
     def __init__(self,
-                 api_keys,
+                 api_keys={},
                  logEvents=True,
                  retries=5,
                  retry_backoff_factor=2,
@@ -43,21 +43,6 @@ class NcmClient:
         """
         self.logEvents = logEvents
 
-        if type(api_keys) is not dict:
-            raise TypeError("API Keys must be passed as a dictionary")
-
-        if 'X-CP-API-ID' not in api_keys:
-            raise KeyError("X-CP-API-ID missing. Please ensure all API Keys are present.")
-
-        if 'X-CP-API-KEY' not in api_keys:
-            raise KeyError("X-CP-API-KEY missing. Please ensure all API Keys are present.")
-
-        if 'X-ECM-API-ID' not in api_keys:
-            raise KeyError("X-ECM-API-ID missing. Please ensure all API Keys are present.")
-
-        if 'X-ECM-API-KEY' not in api_keys:
-            raise KeyError("X-ECM-API-KEY missing. Please ensure all API Keys are present.")
-
         self.base_url = base_url
         self.session = Session()
         self.adapter = HTTPAdapter(
@@ -68,7 +53,9 @@ class NcmClient:
                               )
         )
         self.session.mount(self.base_url, self.adapter)
-        self.session.headers.update(api_keys)
+        if api_keys:
+            if self.__validate_api_keys(api_keys):
+                self.session.headers.update(api_keys)
         self.session.headers.update({
             'Content-Type': 'application/json'
         })
@@ -77,12 +64,15 @@ class NcmClient:
         """
         Prints returned HTTP request information if self.logEvents is True.
         """
-
         if str(statuscode) == '200':
             if self.logEvents:
                 print('{0} Operation Successful\n'.format(str(objtype)))
             return None
         elif str(statuscode) == '201':
+            if self.logEvents:
+                print('{0} Added Successfully\n'.format(str(objtype)))
+            return None
+        elif str(statuscode) == '202':
             if self.logEvents:
                 print('{0} Added Successfully\n'.format(str(objtype)))
             return None
@@ -113,7 +103,6 @@ class NcmClient:
         """
         Returns full paginated results, and handles chunking "__in" params in groups of 100
         """
-
         results = []
         __in_keys = 0
         if params['limit'] == 'all':
@@ -172,6 +161,19 @@ class NcmClient:
         bad_params = {k: v for (k, v) in kwargs.items() if k not in allowed_params}
         if len(bad_params) > 0:
             raise ValueError("Invalid parameters: {}".format(bad_params))
+
+        if 'X-CP-API-ID' not in self.session.headers:
+            raise KeyError("X-CP-API-ID missing. Please ensure all API Keys are present.")
+
+        if 'X-CP-API-KEY' not in self.session.headers:
+            raise KeyError("X-CP-API-KEY missing. Please ensure all API Keys are present.")
+
+        if 'X-ECM-API-ID' not in self.session.headers:
+            raise KeyError("X-ECM-API-ID missing. Please ensure all API Keys are present.")
+
+        if 'X-ECM-API-KEY' not in self.session.headers:
+            raise KeyError("X-ECM-API-KEY missing. Please ensure all API Keys are present.")
+
         return params
 
     def __chunk_param(self, param):
@@ -191,13 +193,45 @@ class NcmClient:
         for i in range(0, len(paramlist), n):
             yield paramlist[i:i + n]
 
+    def __validate_api_keys(self, api_keys):
+        """
+        Checks NCM API Keys are a dictionary containing all necessary keys
+        :param api_keys: Dictionary of API credentials. Optional.
+        :type api_keys: dict
+        :return: True if valid
+        """
+        if type(api_keys) is not dict:
+            raise TypeError("API Keys must be passed as a dictionary")
+
+        if 'X-CP-API-ID' not in api_keys:
+            raise KeyError("X-CP-API-ID missing. Please ensure all API Keys are present.")
+
+        if 'X-CP-API-KEY' not in api_keys:
+            raise KeyError("X-CP-API-KEY missing. Please ensure all API Keys are present.")
+
+        if 'X-ECM-API-ID' not in api_keys:
+            raise KeyError("X-ECM-API-ID missing. Please ensure all API Keys are present.")
+
+        if 'X-ECM-API-KEY' not in api_keys:
+            raise KeyError("X-ECM-API-KEY missing. Please ensure all API Keys are present.")
+        return True
+
+    def set_api_keys(self, api_keys):
+        """
+        Sets NCM API Keys for session.
+        :param api_keys: Dictionary of API credentials. Optional.
+        :type api_keys: dict
+        """
+        if self.__validate_api_keys(api_keys):
+            self.session.headers.update(api_keys)
+        return
+
     def get_accounts(self, **kwargs):
         """
         Returns accounts with details.
         :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
         :return: A list of accounts based on API Key.
         """
-
         call_type = 'Accounts'
         geturl = '{0}/accounts/'.format(self.base_url)
 
@@ -213,7 +247,6 @@ class NcmClient:
         :param account_id: ID of account to return
         :return:
         """
-
         return self.get_accounts(id=account_id)[0]
 
     def get_account_by_name(self, account_name):
@@ -222,6 +255,7 @@ class NcmClient:
         :param account_name: Name of account to return
         :return:
         """
+
         return self.get_accounts(name=account_name)[0]
 
     def create_subaccount_by_parent_id(self, parent_account_id, subaccount_name):
