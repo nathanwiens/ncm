@@ -1236,7 +1236,7 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.text, call_type)
         return result
 
-    def set_custom1_field_for_router(self, router_id, text):
+    def set_custom1(self, router_id, text):
         """
         This method updates the Custom1 field in NCM for a given router id.
         :param router_id: ID of router to update.
@@ -1255,7 +1255,7 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
         return result
 
-    def set_custom2_field_for_router(self, router_id, text):
+    def set_custom2(self, router_id, text):
         """
         This method updates the Custom2 field in NCM for a given router id.
         :param router_id: ID of router to update.
