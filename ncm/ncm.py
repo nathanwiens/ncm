@@ -416,6 +416,27 @@ class NcmClient:
         result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
         return result
 
+    def patch_configuration_managers(self, router_id, configman_json):
+        """
+        This method patches an configuration_managers for associated id.
+        :param router_id: ID of router to update
+        :param configman_json: JSON of the "configuration" field of the configuration manager
+        :return:
+        """
+        call_type = 'Configuration Manager'
+
+        response = self.session.get('{0}/configuration_managers/?router.id={1}&fields=id'.format(
+            self.base_url, str(router_id)))  # Get Configuration Managers ID for current Router from API
+        response = json.loads(response.content.decode("utf-8"))  # Decode the response and make it a dictionary
+        configman_id = response['data'][0]['id']  # get the Configuration Managers ID from response
+
+        payload = configman_json
+
+        ncm = self.session.patch('{0}/configuration_managers/{1}/'.format(self.base_url, str(configman_id)),
+                                 data=json.dumps(payload))  # Patch indie config with new values
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type)
+        return result
+
     def copy_router_configuration(self, src_router_id, dst_router_id):
         """
         Copies the Configuration Manager config of one router to another.
@@ -434,6 +455,31 @@ class NcmClient:
 
         """Get destination router Configuration Manager ID"""
         dst_configman_id = self.get_configuration_managers(router=dst_router_id)[0]['id']
+
+        puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, dst_configman_id)
+
+        ncm = self.session.patch(puturl, data=src_config)
+        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
+        return result
+
+    def copy_group_configuration(self, src_group_id, dst_group_id):
+        """
+        Copies the Configuration Manager config of one router to another.
+        This function will not copy any passwords as they are not stored in clear text.
+        :param src_group_id: Group ID to copy from
+        :param dst_group_id: Group ID to copy to
+        :return: Should return HTTP Status Code 202 if successful
+        """
+        call_type = 'Configuration Manager'
+        """Get source router existing configuration"""
+        src_config = self.get_groups(src_group_id)[0]['configuration']
+
+        """Strip passwords which aren't stored in plain text"""
+        src_config = json.dumps(src_config).replace(', "wpapsk": "*"', '').replace('"wpapsk": "*"', '')\
+            .replace(', "password": "*"', '').replace('"password": "*"', '')
+
+        """Get destination router Configuration Manager ID"""
+        dst_configman_id = self.get_configuration_managers(router=dst_group_id)[0]['id']
 
         puturl = '{0}/configuration_managers/{1}/'.format(self.base_url, dst_configman_id)
 
@@ -683,8 +729,39 @@ class NcmClient:
         call_type = 'Historical Locations'
         geturl = '{0}/historical_locations/?router={1}'.format(self.base_url, router_id)
 
-        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'order_by', 'limit', 'offset']
+        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'fields', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
+
+        return self.__get_json(geturl, call_type, params=params)
+
+    def get_historical_locations_for_date(self, router_id, date, tzoffset_hrs=0, limit='all', **kwargs):
+        """
+        This method provides a history of device alerts. To receive device alerts, you must enable them
+        through the ECM UI: Alerts -> Settings. The info section of the alert is firmware dependent and
+        may change between firmware releases.
+        :param router_id: ID of the router
+        :param date: Date to filter logs. Must be in format "YYYY-mm-dd"
+        :type date: str
+        :param tzoffset_hrs: Offset from UTC for local timezone
+        :type tzoffset_hrs: int
+        :param limit: Number of records to return. Specifying "all" returns all records. Default all.
+        :param kwargs: A set of zero or more allowed parameters in the allowed_params list.
+        :return:
+        """
+
+        d = datetime.strptime(date, '%Y-%m-%d') + timedelta(hours=tzoffset_hrs)
+        start = d.strftime("%Y-%m-%dT%H:%M:%S")
+        end = (d + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+
+        call_type = 'Historical Locations'
+        geturl = '{0}/historical_locations/?router={1}'.format(self.base_url, router_id)
+
+        allowed_params = ['created_at__gt', 'created_at_timeuuid__gt', 'created_at__lte', 'fields', 'limit', 'offset']
+        params = self.__parse_kwargs(kwargs, allowed_params)
+
+        params.update({'created_at__lte': end,
+                       'created_at__gt': start,
+                       'limit': limit})
 
         return self.__get_json(geturl, call_type, params=params)
 
@@ -697,10 +774,54 @@ class NcmClient:
         call_type = 'Locations'
         geturl = '{0}/locations/'.format(self.base_url)
 
-        allowed_params = ['id', 'id__in', 'limit', 'offset']
+        allowed_params = ['id', 'id__in', 'router', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(geturl, call_type, params=params)
+
+    def create_location(self, account_id, latitude, longitude, router_id):
+        """
+        This method creates a location and applies it to a router.
+        :param account_id: Account which owns the object
+        :param latitude: A device's relative position north or south on the Earth's surface,
+        in degrees from the Equator
+        :param longitude: A device's relative position east or west on the Earth's surface,
+        in degrees from the prime meridian
+        :param router_id: Device that the location is associated with
+        :return:
+        """
+
+        call_type = 'Locations'
+        posturl = '{0}/locations/'.format(self.base_url)
+
+        postdata = {
+            'account': 'https://www.cradlepointecm.com/api/v2/accounts/{}/'.format(str(account_id)),
+            'accuracy': 0,
+            'latitude': latitude,
+            'longitude': longitude,
+            'method': 'manual',
+            'router': 'https://www.cradlepointecm.com/api/v2/routers/{}/'.format(str(router_id))
+        }
+
+        ncm = self.session.post(posturl, data=json.dumps(postdata))
+        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
+        return result
+
+    def delete_location_for_router(self, router_id):
+        """
+        This operation deletes a router by ID.
+        :param router_id: ID of router to delete.
+        :return:
+        """
+        call_type = 'Locations'
+
+        location_id = self.get_locations(router=router_id)[0]['id']
+
+        posturl = '{0}/locations/{1}/'.format(self.base_url, location_id)
+
+        ncm = self.session.delete(posturl)
+        result = self.__returnhandler(ncm.status_code, ncm.text, call_type)
+        return result
 
     def get_net_device_health(self, **kwargs):
         """
@@ -1152,6 +1273,25 @@ class NcmClient:
         """
         return self.rename_router_by_id(
             self.get_router_by_name(existing_router_name)['id'], new_router_name)
+
+    def assign_router_to_group(self, router_id, group_id):
+        """
+        This operation assigns a router to a group.
+        :param router_id: ID of router to move.
+        :param group_id: ID of destination group.
+        :return:
+        """
+        call_type = "Routers"
+
+        puturl = '{0}/routers/{1}/'.format(self.base_url, str(router_id))
+
+        putdata = {
+            "group": 'https://www.cradlepointecm.com/api/v2/groups/{}/'.format(group_id)
+        }
+
+        ncm = self.session.put(puturl, data=json.dumps(putdata))
+        result = self.__returnhandler(ncm.status_code, ncm.json(), call_type)
+        return result
 
     def delete_router_by_id(self, router_id):
         """
