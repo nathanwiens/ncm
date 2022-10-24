@@ -1574,7 +1574,7 @@ class NcmClient:
         :param group_id: ID of destination group.
         :return:
         """
-        call_type = "Routers"
+        call_type = "Router"
 
         put_url = '{0}/routers/{1}/'.format(self.base_url, str(router_id))
 
@@ -1584,6 +1584,34 @@ class NcmClient:
         }
 
         ncm = self.session.put(put_url, data=json.dumps(put_data))
+        result = self.__return_handler(ncm.status_code, ncm.json(), call_type)
+        return result
+
+    def remove_router_from_group(self, router_id=None, router_name=None):
+        """
+        This operation removes a router from its group.
+        Either the ID or the name must be specified.
+        :param router_id: ID of router to move.
+        :param router_name: Name of router to move
+        :return:
+        """
+        call_type = "Router"
+        if not router_id and not router_name:
+            return "ERROR: Either Router ID or Router Name must be specified."
+        if not router_id:
+            router_id = self.get_router_by_name(router_name)['id']
+
+        put_url = '{0}/routers/{1}/'.format(self.base_url, str(router_id))
+
+        put_data = {
+            "group": None
+        }
+
+        ncm = self.session.put(put_url, data=json.dumps(put_data))
+        if ncm.status_code == 201 or ncm.status_code == 202:
+            if self.logEvents:
+                print('Router Modified Successfully\n')
+            return None
         result = self.__return_handler(ncm.status_code, ncm.json(), call_type)
         return result
 
@@ -1854,6 +1882,114 @@ class NcmClient:
                                 "password": new_password
                             }
                         }
+                    }
+                },
+                []
+            ]
+        }
+
+        ncm = self.session.patch(
+            '{0}/configuration_managers/{1}/'.format(self.base_url,
+                                                     str(config_man_id)),
+            data=json.dumps(payload))  # Patch indie config with new values
+        result = self.__return_handler(ncm.status_code, ncm.text, call_type)
+        return result
+
+    def set_router_name(self, router_id: int, new_router_name: str):
+        """
+        This method sets the local admin password for a router.
+        :param router_id: ID of router to update
+        :param new_router_name: Name/System ID to set
+        :return:
+        """
+        call_type = 'Router Name'
+
+        response = self.session.get(
+            '{0}/configuration_managers/?router.id={1}&fields=id'.format(
+                self.base_url,
+                str(router_id)))  # Get Configuration Managers ID
+        response = json.loads(response.content.decode(
+            "utf-8"))  # Decode the response and make it a dictionary
+        config_man_id = response['data'][0][
+            'id']  # get the Configuration Managers ID from response
+
+        payload = {
+            "configuration": [
+                {
+                    "system": {
+                        "system_id": new_router_name
+                    }
+                },
+                []
+            ]
+        }
+
+        ncm = self.session.patch(
+            '{0}/configuration_managers/{1}/'.format(self.base_url,
+                                                     str(config_man_id)),
+            data=json.dumps(payload))  # Patch indie config with new values
+        result = self.__return_handler(ncm.status_code, ncm.text, call_type)
+        return result
+
+    def set_router_description(self, router_id: int, new_router_description: str):
+        """
+        This method sets the local admin password for a router.
+        :param router_id: ID of router to update
+        :param new_router_description: Description string to set
+        :return:
+        """
+        call_type = 'Description'
+
+        response = self.session.get(
+            '{0}/configuration_managers/?router.id={1}&fields=id'.format(
+                self.base_url,
+                str(router_id)))  # Get Configuration Managers ID
+        response = json.loads(response.content.decode(
+            "utf-8"))  # Decode the response and make it a dictionary
+        config_man_id = response['data'][0][
+            'id']  # get the Configuration Managers ID from response
+
+        payload = {
+            "configuration": [
+                {
+                    "system": {
+                        "desc": new_router_description
+                    }
+                },
+                []
+            ]
+        }
+
+        ncm = self.session.patch(
+            '{0}/configuration_managers/{1}/'.format(self.base_url,
+                                                     str(config_man_id)),
+            data=json.dumps(payload))  # Patch indie config with new values
+        result = self.__return_handler(ncm.status_code, ncm.text, call_type)
+        return result
+
+    def set_router_asset_id(self, router_id: int, new_router_asset_id: str):
+        """
+        This method sets the local admin password for a router.
+        :param router_id: ID of router to update
+        :param new_router_asset_id: Asset ID string to set
+        :return:
+        """
+        call_type = 'Asset ID'
+
+        response = self.session.get(
+            '{0}/configuration_managers/?router.id={1}&fields=id'.format(
+                self.base_url,
+                str(router_id)))  # Get Configuration Managers ID
+        response = json.loads(response.content.decode(
+            "utf-8"))  # Decode the response and make it a dictionary
+        config_man_id = response['data'][0][
+            'id']  # get the Configuration Managers ID from response
+
+        payload = {
+            "configuration": [
+                {
+                    "system": {
+                        "asset_id": new_router_asset_id
                     }
                 },
                 []
