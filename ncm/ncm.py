@@ -983,7 +983,7 @@ class NcmClient:
         call_type = 'Locations'
         get_url = '{0}/locations/'.format(self.base_url)
 
-        allowed_params = ['id', 'id__in', 'router', 'limit', 'offset']
+        allowed_params = ['id', 'id__in', 'router', 'router__in', 'limit', 'offset']
         params = self.__parse_kwargs(kwargs, allowed_params)
 
         return self.__get_json(get_url, call_type, params=params)
